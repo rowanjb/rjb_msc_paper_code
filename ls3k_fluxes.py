@@ -251,50 +251,92 @@ def calculate_projected_areas():
 
     # Open the data and various mask and mesh files
     ds = xr.open_dataset('masks/ls3k_flux_face_ids.nc')
-    ds_mesh = xr.open_dataset('masks/ANHA4_mesh_mask.nc')    
+    ds_mesh = xr.open_dataset('masks/ANHA4_mesh_mask.nc').isel(t=0)    
 
     # Calculating the projected areas
-    ds_mesh['U_face_areas'] = ds['e1
+    ds_mesh['U_face_areas'] = ds_mesh['e2u']*ds_mesh['e3u']
+    ds_mesh['V_face_areas'] = ds_mesh['e1v']*ds_mesh['e3v']
+   
+    # Constructing array of areas
+    num_depths = len(ds_mesh['z'].to_numpy())
+    num_cells = len(ds['ids'].to_numpy())
+    rows = ds['y_grid_T'].values
+    cols = ds['x_grid_T'].values
+    directions = ds['directions'].values
+    areas = np.zeros( (num_cells, num_depths) )
+    for n in np.arange(num_cells):
+        row, col, direction = rows[n], cols[n], directions[n]
+        if direction=='southward' or direction=='northward':
+            areas[n,:] = ds_mesh['V_face_areas'].isel(y=row,x=col).values
+        elif direction=='eastward' or direction=='westward':
+            areas[n,:] = ds_mesh['U_face_areas'].isel(y=row,x=col).values
+        else:
+            print('Broken loop with error code 6')
+            quit()
 
-    ids = np.arange(len(final_rows))
     ds_final = xr.Dataset(
         {
-            "y_grid_T": (("ids"),final_rows),
-            "x_grid_T": (("ids"),final_cols),
-            "directions": (("ids"),final_directions),
+            "Areas": (("ids","z"),areas),
         },
         coords={
-            "ids": ids,
+            "ids": ds['ids'].values,
+            "z": ds_mesh['z'].values,
         },
-        attrs=dict(description="Indices and directions of all faces which have non-zero flux into the interior of a masked area"),
+        attrs=dict(description="Areas of all faces which have non-zero flux into the interior of a masked area"),
     )
-    ds_final.to_netcdf('masks/tmp.nc')
+    ds_final.to_netcdf('masks/ls3k_flux_face_areas.nc')
 
-def calculate_fluxes():
+def calculate_fluxes(run):
     """Calculates volume, temperature, and salinity fluxes into the interior Lab Sea.
-    I am neglecting variable e3 values because they are negligible and complicating."""
+    I am neglecting variable e3 values because they are negligible and complicating.
+    (I will revisit this assumption if there is an issue with the volume budget.)
+    I am also taking the T and S from the same cell coordinates as U and V.
+    They might be more accurate if taken as interpolated values at the points themselves, 
+    but again, I will revisit this if there is an issue with the heat and salt budget.
+    Saves output into a netcdf file."""
 
     # Open the data and various mask and mesh files
-    ds = xr.open_dataset('masks/ls3k_flux_face_ids.nc')
-    mask_fp = 'masks/mask_LS_3000.nc'
-    mesh_fp = 'masks/ANHA4_mesh_mask.nc'
-    ds_mask = xr.open_dataset(mask_fp).isel(deptht=0).drop_vars('deptht')
-    ds_mesh = xr.open_dataset(mesh_fp)
+    ds_ids = xr.open_dataset('masks/ls3k_flux_face_ids.nc')
+    ds_areas = xr.open_dataset('masks/ls3k_flux_face_areas.nc')
+    ds_mesh = xr.open_dataset('masks/ANHA4_mesh_mask.nc')
+    ds_mask = xr.open_dataset('masks/mask_LS_3000.nc').isel(deptht=0).drop_vars('deptht')
 
-    # Need to open some example grid U and grid V files for their gridU and gridV lons and lats
-    with open('../filepaths/EPM155_gridU_filepaths.txt') as f: lines = f.readlines()
-    example_gridU_fp = [line.strip() for line in lines][:3]
-    with open('../filepaths/EPM155_gridV_filepaths.txt') as f: lines = f.readlines()
-    example_gridV_fp = [line.strip() for line in lines][:3]
-    dsu = xr.open_dataset(example_gridU_fp)
-    dsv = xr.open_dataset(example_gridV_fp)
+    # Open the U and V files 
+    with open('../filepaths/'+run+'_gridT_filepaths_may2024.txt') as f: lines = f.readlines()
+    gridT_fps = [line.strip() for line in lines][:3]
+    with open('../filepaths/'+run+'_gridU_filepaths_may2024.txt') as f: lines = f.readlines()
+    gridU_fps = [line.strip() for line in lines][:3]
+    with open('../filepaths/'+run+'_gridV_filepaths_may2024.txt') as f: lines = f.readlines()
+    gridV_fps = [line.strip() for line in lines][:3]
+    pp_gridT = lambda ds: ds[['votemper','vosaline']]
+    pp_gridU = lambda ds: ds[['vozocrtx']]
+    pp_gridV = lambda ds: ds[['vomecrty']]
+    dst = xr.open_mfdataset(gridT_fps, preprocess=pp_gridT)
+    dsu = xr.open_mfdataset(gridU_fps, preprocess=pp_gridU).rename({'depthu':'deptht'}) # (They're equal)
+    dsv = xr.open_mfdataset(gridV_fps, preprocess=pp_gridV).rename({'depthv':'deptht'})
 
+    # Taking the values that we want (consider implementing via preprocessing if faster)
+    rows = ds_ids['y_grid_T'].values
+    cols = ds_ids['x_grid_T'].values
+    directions = ds_ids['directions'].values
+    dst = dst.isel(x_grid_T=xr.DataArray(cols, dims="ids"), y_grid_T=xr.DataArray(rows, dims="ids"))
+    dsu = dsu.isel(x=xr.DataArray(cols, dims="ids"), y=xr.DataArray(rows, dims="ids"))
+    dsv = dsv.isel(x=xr.DataArray(cols, dims="ids"), y=xr.DataArray(rows, dims="ids"))
 
-    
+    # Calculating fluxes
+    direction_dict_U = {'southward':0,'westward':-1,'eastward':1,'northward':0}
+    direction_modulator_U = [direction_dict_U[direction] for direction in directions]
+    direction_dict_V = {'southward':-1,'westward':0,'eastward':0,'northward':1}
+    direction_modulator_V = [direction_dict_V[direction] for direction in directions]
+    dst['vel'] = dsu['vozocrtx']*direction_modulator_U + dsv['vomecrty']*direction_modulator_V
+    dst['areas'] = (("ids","deptht"),ds_areas['Areas'].values)
+    dst['vol_flux'] = dst['areas']*dst['vel']
+    print(dst)
 
 if __name__=="__main__":
     #identify_flux_faces()
     #test_plot_ls3k_flux_boundary()
     #linearise_flux_face_ids()
     #test_plot_ls3k_flux_boundary_faces()
-    calculate_projected_areas()
+    #calculate_projected_areas()
+    calculate_fluxes('EPM157')

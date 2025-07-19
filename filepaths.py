@@ -96,25 +96,25 @@ def filepaths(run):
         filepaths_icemod.remove(bad_file + 'icemod.nc')
 
     # Saving the filepaths as txt files
-    with open(fp_dir + run + '_gridT_filepaths_may2024.txt', 'w') as output:
+    with open(fp_dir + run + '_gridT_filepaths_jul2025.txt', 'w') as output:
         for i in filepaths_gridT:
             output.write(str(i) + '\n')
-    with open(fp_dir + run + '_gridU_filepaths_may2024.txt', 'w') as output:
+    with open(fp_dir + run + '_gridU_filepaths_jul2025.txt', 'w') as output:
         for i in filepaths_gridU:
             output.write(str(i) + '\n')
-    with open(fp_dir + run + '_gridV_filepaths_may2024.txt', 'w') as output:
+    with open(fp_dir + run + '_gridV_filepaths_jul2025.txt', 'w') as output:
         for i in filepaths_gridV:
             output.write(str(i) + '\n')
-    with open(fp_dir + run + '_gridB_filepaths_may2024.txt', 'w') as output:
+    with open(fp_dir + run + '_gridB_filepaths_jul2025.txt', 'w') as output:
         for i in filepaths_gridB:
             output.write(str(i) + '\n')
-    with open(fp_dir + run + '_gridW_filepaths_may2024.txt', 'w') as output:
+    with open(fp_dir + run + '_gridW_filepaths_jul2025.txt', 'w') as output:
         for i in filepaths_gridW:
             output.write(str(i) + '\n')
-    with open(fp_dir + run + '_icebergs_filepaths_may2024.txt', 'w') as output:
+    with open(fp_dir + run + '_icebergs_filepaths_jul2025.txt', 'w') as output:
         for i in filepaths_icebergs:
             output.write(str(i) + '\n')
-    with open(fp_dir + run + '_icemod_filepaths_may2024.txt', 'w') as output:
+    with open(fp_dir + run + '_icemod_filepaths_jul2025.txt', 'w') as output:
         for i in filepaths_icemod:
             output.write(str(i) + '\n')
 

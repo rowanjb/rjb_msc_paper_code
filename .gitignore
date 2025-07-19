@@ -1,0 +1,7 @@
+__pycache__/
+*.py[cod]
+*.nc
+*.png
+*.mp4
+*.csv
+*.sh

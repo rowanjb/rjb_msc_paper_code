@@ -246,16 +246,15 @@ def test_plot_ls3k_flux_boundary_faces():
 def calculate_projected_areas():
     """Calculates the projected areas of the flux faces surrounding the interior Lab Sea.
     I am neglecting variable e3 values because they are negligible and complicating.
+    (I will revisit this assumption if there is an issue with the volume budget.)
     Saves output into a netcdf file."""
 
     # Open the data and various mask and mesh files
     ds = xr.open_dataset('masks/ls3k_flux_face_ids.nc')
     ds_mesh = xr.open_dataset('masks/ANHA4_mesh_mask.nc')    
 
-    for i in list(ds_mesh.leys()):
-        print(i)
-    quit()
-
+    # Calculating the projected areas
+    ds_mesh['U_face_areas'] = ds['e1
 
     ids = np.arange(len(final_rows))
     ds_final = xr.Dataset(

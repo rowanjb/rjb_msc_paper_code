@@ -1,3 +1,5 @@
+# Code relating to my MSc and the associated paper
+
 This repo represents the majority of my MSc research and the associated paper.
 It is cloned on both Graham (Alliance Can) and on Wessex/Carthage/Storage6 (UAlberta HPC).
 

@@ -243,9 +243,59 @@ def test_plot_ls3k_flux_boundary_faces():
     ax.quiver(np.array(lons),np.array(lats),np.array(u),np.array(v),transform=ccrs.PlateCarree(),width=0.001)
     plt.savefig('test.png', dpi=1200)
 
+def calculate_projected_areas():
+    """Calculates the projected areas of the flux faces surrounding the interior Lab Sea.
+    I am neglecting variable e3 values because they are negligible and complicating.
+    Saves output into a netcdf file."""
+
+    # Open the data and various mask and mesh files
+    ds = xr.open_dataset('masks/ls3k_flux_face_ids.nc')
+    ds_mesh = xr.open_dataset('masks/ANHA4_mesh_mask.nc')    
+
+    for i in list(ds_mesh.leys()):
+        print(i)
+    quit()
+
+
+    ids = np.arange(len(final_rows))
+    ds_final = xr.Dataset(
+        {
+            "y_grid_T": (("ids"),final_rows),
+            "x_grid_T": (("ids"),final_cols),
+            "directions": (("ids"),final_directions),
+        },
+        coords={
+            "ids": ids,
+        },
+        attrs=dict(description="Indices and directions of all faces which have non-zero flux into the interior of a masked area"),
+    )
+    ds_final.to_netcdf('masks/tmp.nc')
+
+def calculate_fluxes():
+    """Calculates volume, temperature, and salinity fluxes into the interior Lab Sea.
+    I am neglecting variable e3 values because they are negligible and complicating."""
+
+    # Open the data and various mask and mesh files
+    ds = xr.open_dataset('masks/ls3k_flux_face_ids.nc')
+    mask_fp = 'masks/mask_LS_3000.nc'
+    mesh_fp = 'masks/ANHA4_mesh_mask.nc'
+    ds_mask = xr.open_dataset(mask_fp).isel(deptht=0).drop_vars('deptht')
+    ds_mesh = xr.open_dataset(mesh_fp)
+
+    # Need to open some example grid U and grid V files for their gridU and gridV lons and lats
+    with open('../filepaths/EPM155_gridU_filepaths.txt') as f: lines = f.readlines()
+    example_gridU_fp = [line.strip() for line in lines][:3]
+    with open('../filepaths/EPM155_gridV_filepaths.txt') as f: lines = f.readlines()
+    example_gridV_fp = [line.strip() for line in lines][:3]
+    dsu = xr.open_dataset(example_gridU_fp)
+    dsv = xr.open_dataset(example_gridV_fp)
+
+
+    
+
 if __name__=="__main__":
     #identify_flux_faces()
     #test_plot_ls3k_flux_boundary()
-    #test_function()
     #linearise_flux_face_ids()
-    test_plot_ls3k_flux_boundary_faces()
+    #test_plot_ls3k_flux_boundary_faces()
+    calculate_projected_areas()

@@ -5,3 +5,10 @@ __pycache__/
 *.mp4
 *.csv
 *.sh
+
+!masks/ANHA4_mesh_mask.nc
+!masks/ARGOProfiles_mask.nc
+!masks/mask_LS_3000.nc
+!masks/mask_LS.nc
+!masks/ls3k_flux_mask.nc
+!masks/ls3k_flux_face_ids.nc

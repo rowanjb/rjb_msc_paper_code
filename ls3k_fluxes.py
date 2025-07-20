@@ -9,6 +9,7 @@ import matplotlib.pyplot as plt
 import cartopy.crs as ccrs
 import cartopy.feature as feature
 from ls3k_mask_boundary import ls3k_boundary
+import gsw
 
 def identify_flux_faces():
     """Identifies the U and V faces defining the edge of the 3,000 m isobath mask.
@@ -302,12 +303,12 @@ def calculate_fluxes(run):
     ds_mask = xr.open_dataset('masks/mask_LS_3000.nc').isel(deptht=0).drop_vars('deptht')
 
     # Open the U and V files 
-    with open('../filepaths/'+run+'_gridT_filepaths_may2024.txt') as f: lines = f.readlines()
-    gridT_fps = [line.strip() for line in lines][:3]
-    with open('../filepaths/'+run+'_gridU_filepaths_may2024.txt') as f: lines = f.readlines()
-    gridU_fps = [line.strip() for line in lines][:3]
-    with open('../filepaths/'+run+'_gridV_filepaths_may2024.txt') as f: lines = f.readlines()
-    gridV_fps = [line.strip() for line in lines][:3]
+    with open('../filepaths/'+run+'_gridT_filepaths_jul2025.txt') as f: lines = f.readlines()
+    gridT_fps = [line.strip() for line in lines]
+    with open('../filepaths/'+run+'_gridU_filepaths_jul2025.txt') as f: lines = f.readlines()
+    gridU_fps = [line.strip() for line in lines]
+    with open('../filepaths/'+run+'_gridV_filepaths_jul2025.txt') as f: lines = f.readlines()
+    gridV_fps = [line.strip() for line in lines]
     pp_gridT = lambda ds: ds[['votemper','vosaline']]
     pp_gridU = lambda ds: ds[['vozocrtx']]
     pp_gridV = lambda ds: ds[['vomecrty']]
@@ -330,8 +331,46 @@ def calculate_fluxes(run):
     direction_modulator_V = [direction_dict_V[direction] for direction in directions]
     dst['vel'] = dsu['vozocrtx']*direction_modulator_U + dsv['vomecrty']*direction_modulator_V
     dst['areas'] = (("ids","deptht"),ds_areas['Areas'].values)
-    dst['vol_flux'] = dst['areas']*dst['vel']
-    print(dst)
+
+    # Need densitie; uses some minor simplifications
+    dst['pressure'] = gsw.p_from_z(dst['deptht'],dst['nav_lat_grid_T'])
+    dst['SA'] = gsw.SA_from_SP(dst['vosaline'],dst['pressure'],dst['nav_lon_grid_T'],dst['nav_lat_grid_T'])
+    dst['CT'] = gsw.CT_from_pt(dst['SA'],dst['votemper'])
+    dst['pot_dens'] = gsw.sigma0(dst['SA'],dst['CT'])
+    dst['cp'] = gsw.cp_t_exact(dst['SA'],gsw.t_from_CT(dst['SA'],dst['CT'],dst['pressure']),dst['pressure'])
+    dst['insit_dens'] = gsw.rho(dst['SA'],dst['CT'],dst['pressure'])
+
+    # Volume flux 
+    dst['vol_flux'] = dst['areas']*dst['vel'] # m**3/s
+    
+    # Heat flux; could use non-ref rho and calculate cp, but for comparability with the interior HC...
+    #dst['heat_flux'] = dst['vol_flux']*(1026)*(4000)*(dst['votemper']-(-2)) # vol_flux [m**3/s] * kJ/m**3
+    dst['heat_flux'] = dst['vol_flux']*dst['pot_dens']*dst['cp']*(dst['votemper']-(-2))
+
+    # Salt content
+    dst['salt_flux'] = dst['vol_flux']*dst['vosaline']*dst['insit_dens'] # vol_flux [m**3/s] * g/kg *kg/m**3
+
+    # Saving
+    dst = dst[['areas','vol_flux','heat_flux','salt_flux']]
+    dst = dst.assign_attrs(description="Flux into the interior Lab Sea", 
+                           title="Flux into the interior Lab Sea",
+                           vol_flux_units="m**3/s",
+                           heat_flux_units="kJ/s",
+                           salt_flux_units="g/s")
+    print("LS3k fluxes calc'd for: "+run)
+    dst.to_netcdf('ls3k_fluxes_'+run+'.nc')
+    dst.close()
+    dsu.close()
+    dsv.close()
+    print("LS3k fluxes saved for: "+run)
+
+def test_ls3k_fluxes():
+    """Throw-away script for testing if the fluxes calculated in calculate_fluxes() are reasonable"""
+
+    ds = xr.open_dataset("test.nc")
+    for i in np.arange(60):
+       print(ds['heat_flux'].isel(time_counter=i).sum().values)
+    print(ds['heat_flux'].sum(['deptht','ids']).mean(dim='time_counter'))
 
 if __name__=="__main__":
     #identify_flux_faces()
@@ -339,4 +378,6 @@ if __name__=="__main__":
     #linearise_flux_face_ids()
     #test_plot_ls3k_flux_boundary_faces()
     #calculate_projected_areas()
-    calculate_fluxes('EPM157')
+    for run in ['EPM151','EPM152','EPM155','EPM156','EPM157','EPM158']:
+        calculate_fluxes(run)
+    #test_ls3k_fluxes()

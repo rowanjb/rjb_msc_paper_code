@@ -11,7 +11,10 @@ def filepaths(run):
     Sometimes--rarely--the files get corrupted! Esp. true after Graham (HPC) crashed in early '24.
     Filepaths are saved in text files for security reasons.
     All model output files here refer to copies on Graham.
-    Run should be a string e.g., 'EPM151' or 'EPM155' etc."""
+    Run should be a string e.g., 'EPM151' or 'EPM155' etc.
+    Note that sometimes this isn't even enough, and you might have missing or corrupted data
+    for certain edge cases, such as when when trying to access vooxy or vodic data. This would
+    require you to test for that edge case in the code below."""
 
     # Directory of filepath txt files
     fp_dir = '../filepaths/'

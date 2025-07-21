@@ -244,10 +244,10 @@ def test_plot_ls3k_flux_boundary_faces():
     ax.quiver(np.array(lons),np.array(lats),np.array(u),np.array(v),transform=ccrs.PlateCarree(),width=0.001)
     plt.savefig('test.png', dpi=1200)
 
-def calculate_projected_areas():
-    """Calculates the projected areas of the flux faces surrounding the interior Lab Sea.
-    I am neglecting variable e3 values because they are negligible and complicating.
-    (I will revisit this assumption if there is an issue with the volume budget.)
+def identify_projected_dims():
+    """Identifies the horizontal dimensions of the projected areas.
+    Previously calculated the total area using invariant e3t values (cell heights).
+    Now updated so that calculate_fluxes() can utilise variable cell heights.
     Saves output into a netcdf file."""
 
     # Open the data and various mask and mesh files
@@ -255,8 +255,8 @@ def calculate_projected_areas():
     ds_mesh = xr.open_dataset('masks/ANHA4_mesh_mask.nc').isel(t=0)    
 
     # Calculating the projected areas
-    ds_mesh['U_face_areas'] = ds_mesh['e2u']*ds_mesh['e3u']
-    ds_mesh['V_face_areas'] = ds_mesh['e1v']*ds_mesh['e3v']
+    ds_mesh['U_face_areas'] = ds_mesh['e2u']#*ds_mesh['e3u']
+    ds_mesh['V_face_areas'] = ds_mesh['e1v']#*ds_mesh['e3v']
    
     # Constructing array of areas
     num_depths = len(ds_mesh['z'].to_numpy())
@@ -277,13 +277,13 @@ def calculate_projected_areas():
 
     ds_final = xr.Dataset(
         {
-            "Areas": (("ids","z"),areas),
+            "areas": (("ids","z"),areas),
         },
         coords={
             "ids": ds['ids'].values,
             "z": ds_mesh['z'].values,
         },
-        attrs=dict(description="Areas of all faces which have non-zero flux into the interior of a masked area"),
+        attrs=dict(description="areas of all faces which have non-zero flux into the interior of a masked area"),
     )
     ds_final.to_netcdf('masks/ls3k_flux_face_areas.nc')
 
@@ -330,22 +330,22 @@ def calculate_fluxes(run):
     direction_dict_V = {'southward':-1,'westward':0,'eastward':0,'northward':1}
     direction_modulator_V = [direction_dict_V[direction] for direction in directions]
     dst['vel'] = dsu['vozocrtx']*direction_modulator_U + dsv['vomecrty']*direction_modulator_V
-    dst['areas'] = (("ids","deptht"),ds_areas['Areas'].values)
+    dst['areas'] = (("ids","deptht"),ds_areas['areas'].values)
 
     # Need densitie; uses some minor simplifications
-    dst['pressure'] = gsw.p_from_z(dst['deptht'],dst['nav_lat_grid_T'])
-    dst['SA'] = gsw.SA_from_SP(dst['vosaline'],dst['pressure'],dst['nav_lon_grid_T'],dst['nav_lat_grid_T'])
-    dst['CT'] = gsw.CT_from_pt(dst['SA'],dst['votemper'])
-    dst['pot_dens'] = gsw.sigma0(dst['SA'],dst['CT'])
-    dst['cp'] = gsw.cp_t_exact(dst['SA'],gsw.t_from_CT(dst['SA'],dst['CT'],dst['pressure']),dst['pressure'])
-    dst['insit_dens'] = gsw.rho(dst['SA'],dst['CT'],dst['pressure'])
+    dst['pressure'] = gsw.p_from_z(dst['deptht'],dst['nav_lat_grid_T']) # dbar
+    dst['SA'] = gsw.SA_from_SP(dst['vosaline'],dst['pressure'],dst['nav_lon_grid_T'],dst['nav_lat_grid_T']) # g/kg ?
+    dst['CT'] = gsw.CT_from_pt(dst['SA'],dst['votemper']) # C
+    dst['pot_dens'] = gsw.sigma0(dst['SA'],dst['CT']) # kg/m**3
+    dst['cp'] = gsw.cp_t_exact(dst['SA'],gsw.t_from_CT(dst['SA'],dst['CT'],dst['pressure']),dst['pressure']) # J/kg C
+    dst['insit_dens'] = gsw.rho(dst['SA'],dst['CT'],dst['pressure']) # kg/m**3
 
     # Volume flux 
     dst['vol_flux'] = dst['areas']*dst['vel'] # m**3/s
     
     # Heat flux; could use non-ref rho and calculate cp, but for comparability with the interior HC...
     #dst['heat_flux'] = dst['vol_flux']*(1026)*(4000)*(dst['votemper']-(-2)) # vol_flux [m**3/s] * kJ/m**3
-    dst['heat_flux'] = dst['vol_flux']*dst['pot_dens']*dst['cp']*(dst['votemper']-(-2))
+    dst['heat_flux'] = dst['vol_flux']*dst['pot_dens']*dst['cp']*(dst['votemper']-(-2)) # m**3/s * kg/m**3 * J/kgC * C = J/s
 
     # Salt content
     dst['salt_flux'] = dst['vol_flux']*dst['vosaline']*dst['insit_dens'] # vol_flux [m**3/s] * g/kg *kg/m**3
@@ -355,7 +355,7 @@ def calculate_fluxes(run):
     dst = dst.assign_attrs(description="Flux into the interior Lab Sea", 
                            title="Flux into the interior Lab Sea",
                            vol_flux_units="m**3/s",
-                           heat_flux_units="kJ/s",
+                           heat_flux_units="J/s",
                            salt_flux_units="g/s")
     print("LS3k fluxes calc'd for: "+run)
     dst.to_netcdf('ls3k_fluxes_'+run+'.nc')
@@ -367,17 +367,29 @@ def calculate_fluxes(run):
 def test_ls3k_fluxes():
     """Throw-away script for testing if the fluxes calculated in calculate_fluxes() are reasonable"""
 
-    ds = xr.open_dataset("test.nc")
-    for i in np.arange(60):
-       print(ds['heat_flux'].isel(time_counter=i).sum().values)
-    print(ds['heat_flux'].sum(['deptht','ids']).mean(dim='time_counter'))
+    ds = xr.open_dataset("ls3k_fluxes_EPM151.nc")
+    
+    print(ds['vol_flux'].sum(['ids','deptht']).mean().values)
+    quit()
+
+    # Cape Farwell is at ids=80
+    ds['deptht'] = ds['deptht']*(-1)
+    da = ds['vol_flux'].mean('time_counter')
+    fig, ax = plt.subplots(figsize=(20,4))
+    da.plot.pcolormesh(x='ids',y='deptht', ax=ax)
+    ax.set_xlabel('Perimeter cell id')
+    ax.set_ylabel('Depth ($m$)')
+    ax.set_ylim(-4000,0)
+    ax.set_title("Mean volume flux EPM151 2002-2018")
+    plt.savefig('test.png')
+
+    print(ds)
 
 if __name__=="__main__":
     #identify_flux_faces()
     #test_plot_ls3k_flux_boundary()
     #linearise_flux_face_ids()
     #test_plot_ls3k_flux_boundary_faces()
-    #calculate_projected_areas()
+    identify_projected_dims()
     for run in ['EPM151','EPM152','EPM155','EPM156','EPM157','EPM158']:
         calculate_fluxes(run)
-    #test_ls3k_fluxes()

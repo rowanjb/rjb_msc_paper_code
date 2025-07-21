@@ -77,7 +77,7 @@ def heat_and_salt_content(run):
     # Take the sum in space and save
     DS['heat_content'].sum(['deptht','y_grid_T','x_grid_T']).to_netcdf('ls3k_heat_content_'+run+'.nc')
 
-    print('completed: Heat content saved for ' + run)
+    print('Completed: Heat content saved for ' + run)
 
     #== Salt content calculations ==#
 
@@ -88,10 +88,10 @@ def heat_and_salt_content(run):
     # Units:     g     = m**3          * g/kg           * kg/m**3
     DS['salt_content'] = DS['volumes'] * DS['vosaline'] * DS['insit_dens']
 
-    # Take the sum in space 
+    # Take the sum in space and save
     DS['salt_content'].sum(['deptht','y_grid_T','x_grid_T']).to_netcdf('ls3k_salt_content_'+run+'.nc')
 
-    print('completed: Salt content saved for ' + run)
+    print('Completed: Salt content saved for ' + run)
 
 if __name__ == '__main__':
     for run in ['EPM151','EPM152','EPM155','EPM156','EPM157','EPM158']:

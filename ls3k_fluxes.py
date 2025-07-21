@@ -255,8 +255,8 @@ def identify_projected_dims():
     ds_mesh = xr.open_dataset('masks/ANHA4_mesh_mask.nc').isel(t=0)    
 
     # Calculating the projected areas
-    ds_mesh['U_face_areas'] = ds_mesh['e2u']#*ds_mesh['e3u']
-    ds_mesh['V_face_areas'] = ds_mesh['e1v']#*ds_mesh['e3v']
+    ds_mesh['U_face_areas'] = ds_mesh['e2u']#*ds_mesh['e3u'] # 2 == north-west dim
+    ds_mesh['V_face_areas'] = ds_mesh['e1v']#*ds_mesh['e3v'] # 1 == east-west dim
    
     # Constructing array of areas
     num_depths = len(ds_mesh['z'].to_numpy())
@@ -265,40 +265,40 @@ def identify_projected_dims():
     cols = ds['x_grid_T'].values
     directions = ds['directions'].values
     areas = np.zeros( (num_cells, num_depths) )
-    for n in np.arange(num_cells):
+    for n in np.arange(num_cells): # For each cell in the boundary 
         row, col, direction = rows[n], cols[n], directions[n]
-        if direction=='southward' or direction=='northward':
-            areas[n,:] = ds_mesh['V_face_areas'].isel(y=row,x=col).values
-        elif direction=='eastward' or direction=='westward':
-            areas[n,:] = ds_mesh['U_face_areas'].isel(y=row,x=col).values
+        if direction=='southward' or direction=='northward': # If the flux is north-south... 
+            areas[n,:] = ds_mesh['V_face_areas'].isel(y=row,x=col).values # Then we want a v dimension
+        elif direction=='eastward' or direction=='westward': # If the flux is east-west...
+            areas[n,:] = ds_mesh['U_face_areas'].isel(y=row,x=col).values # Then we want a u dimension
         else:
             print('Broken loop with error code 6')
             quit()
 
     ds_final = xr.Dataset(
         {
-            "areas": (("ids","z"),areas),
+            "horiz_dim": (("ids","z"),areas),
         },
         coords={
             "ids": ds['ids'].values,
             "z": ds_mesh['z'].values,
         },
-        attrs=dict(description="areas of all faces which have non-zero flux into the interior of a masked area"),
+        attrs=dict(description="Appropriate horizontal dimension of all faces which have non-zero flux into the interior of masked area."
+                                "If flux is east-west (U velocity) then the dimension is e2u."
+                                "If flux is north-south (V velocity) then the dimension is e1v"),
     )
-    ds_final.to_netcdf('masks/ls3k_flux_face_areas.nc')
+    ds_final.to_netcdf('masks/ls3k_flux_face_hzdims.nc')
 
 def calculate_fluxes(run):
     """Calculates volume, temperature, and salinity fluxes into the interior Lab Sea.
-    I am neglecting variable e3 values because they are negligible and complicating.
-    (I will revisit this assumption if there is an issue with the volume budget.)
-    I am also taking the T and S from the same cell coordinates as U and V.
-    They might be more accurate if taken as interpolated values at the points themselves, 
-    but again, I will revisit this if there is an issue with the heat and salt budget.
+    I am taking the T and S from the same cell coordinates as U and V.
+    They might be very slightly more accurate if taken as interpolated values at the points themselves, 
+    but I will revisit this if there is an issue with the heat and salt budget.
     Saves output into a netcdf file."""
 
     # Open the data and various mask and mesh files
     ds_ids = xr.open_dataset('masks/ls3k_flux_face_ids.nc')
-    ds_areas = xr.open_dataset('masks/ls3k_flux_face_areas.nc')
+    ds_hzdims = xr.open_dataset('masks/ls3k_flux_face_hzdims.nc')
     ds_mesh = xr.open_dataset('masks/ANHA4_mesh_mask.nc')
     ds_mask = xr.open_dataset('masks/mask_LS_3000.nc').isel(deptht=0).drop_vars('deptht')
 
@@ -310,13 +310,13 @@ def calculate_fluxes(run):
     with open('../filepaths/'+run+'_gridV_filepaths_jul2025.txt') as f: lines = f.readlines()
     gridV_fps = [line.strip() for line in lines]
     pp_gridT = lambda ds: ds[['votemper','vosaline']]
-    pp_gridU = lambda ds: ds[['vozocrtx']]
-    pp_gridV = lambda ds: ds[['vomecrty']]
+    pp_gridU = lambda ds: ds[['e3u','vozocrtx']]
+    pp_gridV = lambda ds: ds[['e3v','vomecrty']]
     dst = xr.open_mfdataset(gridT_fps, preprocess=pp_gridT)
     dsu = xr.open_mfdataset(gridU_fps, preprocess=pp_gridU).rename({'depthu':'deptht'}) # (They're equal)
     dsv = xr.open_mfdataset(gridV_fps, preprocess=pp_gridV).rename({'depthv':'deptht'})
 
-    # Taking the values that we want (consider implementing via preprocessing if faster)
+    # Extracting only the boundary cells
     rows = ds_ids['y_grid_T'].values
     cols = ds_ids['x_grid_T'].values
     directions = ds_ids['directions'].values
@@ -324,36 +324,43 @@ def calculate_fluxes(run):
     dsu = dsu.isel(x=xr.DataArray(cols, dims="ids"), y=xr.DataArray(rows, dims="ids"))
     dsv = dsv.isel(x=xr.DataArray(cols, dims="ids"), y=xr.DataArray(rows, dims="ids"))
 
-    # Calculating fluxes
+    # Gathering necessary terms into the gridT dataset
+    # Basic idea is to multiply U and V velocities by direction vectors so that each boundary face (which 
+    # has a unique id) has an associated non-zero U or V velocity (depending whether it is an 
+    # east-west face (V velocity), or a north-south face (U velocity)). The other component is made
+    # equal to zero and then added together. If the inward direction is against the positive 
+    # coordinate system of the model, then the non-zero velocity component is also multiplied by -1.
+    # The velocity component is also multiplied by the e3 variable, since it will later by multiplied
+    # by the appropriate e1 or e2 variable, which will give the volume flux.
     direction_dict_U = {'southward':0,'westward':-1,'eastward':1,'northward':0}
     direction_modulator_U = [direction_dict_U[direction] for direction in directions]
     direction_dict_V = {'southward':-1,'westward':0,'eastward':0,'northward':1}
     direction_modulator_V = [direction_dict_V[direction] for direction in directions]
-    dst['vel'] = dsu['vozocrtx']*direction_modulator_U + dsv['vomecrty']*direction_modulator_V
-    dst['areas'] = (("ids","deptht"),ds_areas['areas'].values)
+    dst['vel*e3'] = dsu['e3u']*dsu['vozocrtx']*direction_modulator_U + dsv['e3v']*dsv['vomecrty']*direction_modulator_V
+    dst['horiz_dims'] = (("ids","deptht"),ds_hzdims['horiz_dim'].values)
 
     # Need densitie; uses some minor simplifications
-    dst['pressure'] = gsw.p_from_z(dst['deptht'],dst['nav_lat_grid_T']) # dbar
-    dst['SA'] = gsw.SA_from_SP(dst['vosaline'],dst['pressure'],dst['nav_lon_grid_T'],dst['nav_lat_grid_T']) # g/kg ?
+    dst['pressure'] = gsw.p_from_z((-1)*dst['deptht'],dst['nav_lat_grid_T']) # dbar, note deptht needs to be negative
+    dst['SA'] = gsw.SA_from_SP(dst['vosaline'],dst['pressure'],dst['nav_lon_grid_T'],dst['nav_lat_grid_T']) # unitless, i.e., g/kg 
     dst['CT'] = gsw.CT_from_pt(dst['SA'],dst['votemper']) # C
-    dst['pot_dens'] = gsw.sigma0(dst['SA'],dst['CT']) # kg/m**3
     dst['cp'] = gsw.cp_t_exact(dst['SA'],gsw.t_from_CT(dst['SA'],dst['CT'],dst['pressure']),dst['pressure']) # J/kg C
+    dst['pot_dens'] = gsw.rho(dst['SA'],dst['CT'],0) # kg/m**3, equal to potential density if pressure = 0
     dst['insit_dens'] = gsw.rho(dst['SA'],dst['CT'],dst['pressure']) # kg/m**3
 
     # Volume flux 
-    dst['vol_flux'] = dst['areas']*dst['vel'] # m**3/s
+    dst['vol_flux'] = dst['horiz_dims']*dst['vel*e3'] # m * m**2/s = m**3/s
     
-    # Heat flux; could use non-ref rho and calculate cp, but for comparability with the interior HC...
-    #dst['heat_flux'] = dst['vol_flux']*(1026)*(4000)*(dst['votemper']-(-2)) # vol_flux [m**3/s] * kJ/m**3
-    dst['heat_flux'] = dst['vol_flux']*dst['pot_dens']*dst['cp']*(dst['votemper']-(-2)) # m**3/s * kg/m**3 * J/kgC * C = J/s
+    # Heat flux, calculated with refT=-2, gsw.cp_t_exact, and gsw.pot_dens, which is same as my heat content calcs
+    refT = -2
+    dst['heat_flux'] = dst['vol_flux']*dst['pot_dens']*dst['cp']*(dst['votemper']-refT) # m**3/s * kg/m**3 * J/kgC * C = J/s
 
     # Salt content
-    dst['salt_flux'] = dst['vol_flux']*dst['vosaline']*dst['insit_dens'] # vol_flux [m**3/s] * g/kg *kg/m**3
+    dst['salt_flux'] = dst['vol_flux']*dst['vosaline']*dst['insit_dens'] # m**3/s * g/kg * kg/m**3
 
     # Saving
     dst = dst[['areas','vol_flux','heat_flux','salt_flux']]
-    dst = dst.assign_attrs(description="Flux into the interior Lab Sea", 
-                           title="Flux into the interior Lab Sea",
+    dst = dst.assign_attrs(description="Fluxes into the interior Lab Sea", 
+                           title="Fluxes into the interior Lab Sea",
                            vol_flux_units="m**3/s",
                            heat_flux_units="J/s",
                            salt_flux_units="g/s")
@@ -390,6 +397,6 @@ if __name__=="__main__":
     #test_plot_ls3k_flux_boundary()
     #linearise_flux_face_ids()
     #test_plot_ls3k_flux_boundary_faces()
-    identify_projected_dims()
+    #identify_projected_dims()
     for run in ['EPM151','EPM152','EPM155','EPM156','EPM157','EPM158']:
         calculate_fluxes(run)

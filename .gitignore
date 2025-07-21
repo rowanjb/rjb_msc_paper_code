@@ -5,6 +5,8 @@ __pycache__/
 *.mp4
 *.csv
 *.sh
+*.err
+*.out
 
 !masks/ANHA4_mesh_mask.nc
 !masks/ARGOProfiles_mask.nc
@@ -12,5 +14,5 @@ __pycache__/
 !masks/mask_LS.nc
 !masks/ls3k_flux_mask.nc
 !masks/ls3k_flux_face_ids.nc
-!masks/ls3k_flux_face_areas.nc
+!masks/ls3k_flux_face_hzdims.nc
 !masks/mesh_zgr_ANHA4.nc

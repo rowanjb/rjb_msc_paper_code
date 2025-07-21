@@ -54,7 +54,7 @@ def heat_and_salt_content(run):
     # Constant needed calculations
     refT = -2 # Reference temperature [C]  
 
-    # Heat content calculations
+    # Calculate volumes 
     DS['volumes'] = DS.e1t*DS.e3t*DS.e2t # Volume of each cell
 
     # Get pressure from depth (simplification, but minor)

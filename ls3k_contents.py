@@ -12,10 +12,10 @@ from functools import reduce
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 
-def heat(run): 
-    """Calculates heat content in the interior Lab Sea."""
+def heat_and_salt_content(run): 
+    """Calculates heat and salt content in the interior Lab Sea."""
 
-    print("Beginning: Heat content calculations for "+run)
+    print("Beginning: Heat and salt content calculations for "+run)
 
     # Masks (for land, bathymetry, etc. and horiz. grid dimensions)
     with xr.open_dataset('masks/ANHA4_mesh_mask.nc') as DS:
@@ -49,6 +49,8 @@ def heat(run):
     DS.coords['mask'] = mask
     DS = DS.where(DS.mask == 1, drop=True)
 
+    #== Heat content calculations ==# 
+
     # Constant needed calculations
     refT = -2 # Reference temperature [C]  
 
@@ -56,7 +58,7 @@ def heat(run):
     DS['volumes'] = DS.e1t*DS.e3t*DS.e2t # Volume of each cell
 
     # Get pressure from depth (simplification, but minor)
-    DS['p'] = gsw.p_from_z( DS['deptht'], DS['nav_lat_grid_T'] )
+    DS['p'] = gsw.p_from_z( (-1)*DS['deptht'], DS['nav_lat_grid_T'] ) # Requires negative depths
 
     # Get absolute salinity and conservative temperature (necessary for using gsw.rho)
     DS['SA'] = gsw.SA_from_SP( DS['vosaline'], DS['p'], DS['nav_lon_grid_T'], DS['nav_lat_grid_T'] )
@@ -68,8 +70,8 @@ def heat(run):
     # Get potential density (gsw.rho with p=0 gives potential density)
     DS['pot_dens'] = gsw.rho( DS['SA'], DS['CT'], 0 )
 
-    # Finally, calculate heat content
-    # Units:             m**3          * kg/m**3        * J/kgC    *   c
+    # Finally, calculate heat content 
+    # Units:    J      = m**3          * kg/m**3        * J/kgC    *   C
     DS['heat_content'] = DS['volumes'] * DS['pot_dens'] * DS['cp'] * ( DS['votemper'] - refT )
 
     # Take the sum in space and save
@@ -77,13 +79,20 @@ def heat(run):
 
     print('completed: Heat content saved for ' + run)
 
-def salt(run):
-    """Calculates salt content in the interior Lab Sea."""
+    #== Salt content calculations ==#
 
-    print("Beginning: Heat content calculations for "+run)
+    # Get in-situ density (need in-situ density, not potential density as with heat)
+    DS['insit_dens'] = gsw.rho( DS['SA'], DS['CT'], DS['p']) # kg/m**3
 
-    
+    # Finally, calculate salt content
+    # Units:     g     = m**3          * g/kg           * kg/m**3
+    DS['salt_content'] = DS['volumes'] * DS['vosaline'] * DS['insit_dens']
+
+    # Take the sum in space 
+    DS['salt_content'].sum(['deptht','y_grid_T','x_grid_T']).to_netcdf('ls3k_salt_content_'+run+'.nc')
+
+    print('completed: Salt content saved for ' + run)
 
 if __name__ == '__main__':
     for run in ['EPM151','EPM152','EPM155','EPM156','EPM157','EPM158']:
-        heat(run)
+        heat_and_salt_content(run)

@@ -358,7 +358,7 @@ def calculate_fluxes(run):
     dst['salt_flux'] = dst['vol_flux']*dst['vosaline']*dst['insit_dens'] # m**3/s * g/kg * kg/m**3
 
     # Saving
-    dst = dst[['areas','vol_flux','heat_flux','salt_flux']]
+    dst = dst[['vol_flux','heat_flux','salt_flux']]
     dst = dst.assign_attrs(description="Fluxes into the interior Lab Sea", 
                            title="Fluxes into the interior Lab Sea",
                            vol_flux_units="m**3/s",

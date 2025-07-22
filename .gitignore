@@ -16,3 +16,4 @@ __pycache__/
 !masks/ls3k_flux_face_ids.nc
 !masks/ls3k_flux_face_hzdims.nc
 !masks/mesh_zgr_ANHA4.nc
+!masks/mesh_hgr_ANHA4.nc

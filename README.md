@@ -2,6 +2,7 @@
 
 This repo represents the majority of my MSc research and the associated paper.
 It is cloned on both Graham (Alliance Can) and on Wessex/Carthage/Storage6 (UAlberta HPC).
+(Hence some functions are meant to be run on Graham and others on Carthage!)
 
 masks : contains nc files of various masks and meshes 
 

@@ -16,11 +16,11 @@ def regrid_Argo():
 
     # Open netCDF files 
     ds = xr.open_dataset('Argo_mixedlayers_all_04142022.nc') # downloaded from mixedlayer.ucsd.edu
-    mesh = xr.open_dataset('mesh_hgr_ANHA4.nc') # standard ANHA4 grid
+    mesh = xr.open_dataset('masks/mesh_hgr_ANHA4.nc') # standard ANHA4 grid
 
     # Masking the general Lab Sea regions
     ds = ds.where( (ds.profilelat>50) & (ds.profilelat<65) & (ds.profilelon<-45) & (ds.profilelon>-65), drop=True)
-    mesh = mesh.where( (mesh.x>100) & (mesh.x<250) & (mesh.y>300) & (mesh.y<500), drop=True)
+    mesh = mesh.where( (mesh.x>100) & (mesh.x<250) & (mesh.y>300) & (mesh.y<500), drop=True) 
 
     # Binning the ARGO data in time (based on datevec, I think)
     start_datetime = datetime(1,1,1,0,0,0) # Jan 1, year 1 (need to subtract 365 w/r/t profiledate, which measures from Jan 1, year 0)

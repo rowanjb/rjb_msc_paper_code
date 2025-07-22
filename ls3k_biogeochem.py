@@ -24,7 +24,7 @@ def bling(run):
     mask = xr.open_dataarray('masks/mask_LS_3000.nc').astype(int)
 
     # Text file of paths to non-empty model output
-    gridT_txt = '../filepaths/'+run+'_gridT_filepaths_jul2025.txt'
+    gridT_txt = '../filepaths/'+run+'_gridT_filepaths_bling.txt' 
 
     # Open the text files and get lists of the .nc output filepaths
     with open(gridT_txt) as f: lines = f.readlines()
@@ -66,7 +66,7 @@ def bling(run):
     DS = DS.assign_attrs({'description': 'Oxygen and CO2 data in the interior Lab Sea, defined by the 3,000 m isobath',
                     'title': 'Oxygen and CO2 data in the interior Lab Sea'})
     DS[['ox_avg_conc','dic_avg_conc']].to_netcdf('ls3k_biogeochem_'+run+'.nc')
-
+    
     print('Completed: Oxygen and CO2 calculations for ' + run)
 
 
@@ -75,5 +75,4 @@ def bling_plot():
     print('to come...')
 
 if __name__ == '__main__':
-    for run in ['EPM151','EPM152','EPM155','EPM156','EPM157','EPM158']:
-        bling(run)
+    bling('EPM158')

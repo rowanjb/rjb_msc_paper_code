@@ -243,12 +243,12 @@ def MLD_LAB60():
     # (2) to handle time_counter being "wrong" in the output
     def fix_time_dim(ds):
         ds = ds[['somxlts']] #also specify that we only want this MLD variable
-        ds = ds.isel(time_counter=0).drop_vars('time_counter')
+        ds = ds.isel(time_counter=0).drop_vars('time_counter') 
         # (isel followed by drop vars allows you to write a new time_counter in the next line)
-        ds['time_counter'] = datetime.strptime(ds.encoding['source'][-20:-9], 'y%Ym%md%d')
+        ds['time_counter'] = datetime.strptime(ds.encoding['source'][-20:-9], 'y%Ym%md%d') 
         # (ds.encoding gives you the filepath, which in the case of ECP007 contains the date as well)
         return ds
-
+   
     # Open sesame
     DS = xr.open_mfdataset(filepaths_gridT,
                            preprocess=fix_time_dim,
@@ -266,7 +266,7 @@ def MLD_LAB60():
     DS[['e1t','e2t']] = e1t,e2t # Add T cell dimensions as variables
     DS = DS.where(tmask == 1) # Apply tmask (i.e., masking bathy)
     DS.coords['mask'] = mask
-
+   
     #== Beginning calculations ==#
 
     # We are looking at two related ideas, but not convective volume (as with ANHA4): 

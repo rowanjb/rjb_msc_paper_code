@@ -378,8 +378,8 @@ if __name__ == '__main__':
         #energy('T3',run,2000)
         #energy('T1',run,400)
         #energy('T1',run,2000)
-        #energy('T4',run,400)
-        #energy('T4',run,2000)
-        energy('T2',run,400)
-        energy('T2',run,2000)
+        energy('T4',run,400)
+        energy('T4',run,2000)
+        #energy('T2',run,400)
+        #energy('T2',run,2000)
 

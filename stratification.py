@@ -215,12 +215,14 @@ def MLD_Argo():
 
 def MLD_LAB60():
     """Copy of MLD() but for LAB60.
-    Creates and saves datasets of MLDs and convective
-    volumes in the Lab Sea."""
+    Uses ECP017 for our period of interest in 2008--2018.
+    As the LAB60 output is not on Graham, this function is run on Carthage.
+    Creates and saves datasets of MLDs and convective volumes in the Lab Sea."""
 
-    print("Beginning: MLD calculations for LAB60 (ECP007)")
+    print("Beginning: MLD calculations for LAB60 (ECP017)")
 
     # Masks (for land, bathymetry, etc. and horiz. grid dimensions)
+    # These files will likely not be backed up with the other mask files because they are too large (up to 1G each)
     with xr.open_dataset('masks/2_ANHA4-ECP007_mask.nc') as DS:
         tmask = tmask = DS.tmask[0,0,:,:] #DS.tmask[0,:,:,:].rename({'z': 'deptht', 'y': 'y_grid_T', 'x': 'x_grid_T'})
     with xr.open_dataset('masks/2_ANHA4-ECP007_mesh_hgr.nc') as DS:
@@ -228,34 +230,72 @@ def MLD_LAB60():
         e2t = DS.e2t[0,:,:]#.rename({'y': 'y_grid_T', 'x': 'x_grid_T'})
     with xr.open_dataset('masks/2_ANHA4-ECP007_mesh_zgr.nc') as DS:
         e3t = DS.e3t_ps[0,:,:] # Static e3
-    mask = xr.open_dataarray('masks/mask_LS_3000_LAB60.nc').astype(int)
-
-    print(tmask)
-    
-    quit()
-
+    mask = xr.open_dataarray('masks/mask_LS_3000_LAB60.nc').astype(int) # Regridded version of my 3,000 m isobath mask
 
     # Text file of paths to non-empty model output
-    gridT_txt = '../filepaths/'+run+'_gridT_filepaths_jul2025.txt'
+    gridT_txt = '../filepaths/ECP017_gridT_filepaths.txt'
 
     # Open the text files and get lists of the .nc output filepaths
     with open(gridT_txt) as f: lines = f.readlines()
     filepaths_gridT = [line.strip() for line in lines]
 
-    # Open the files and look at MLD 
-    preprocess_gridT = lambda ds: ds[['somxlts']]
-    DS = xr.open_mfdataset(filepaths_gridT,preprocess=preprocess_gridT)
-    DS = DS.rename({'somxlts':'MLD'}) # Easier to handle this way
+    # Preprocessing is necessary to (1) open only the MLD variable and 
+    # (2) to handle time_counter being "wrong" in the output
+    def fix_time_dim(ds):
+        ds = ds[['somxlts']] #also specify that we only want this MLD variable
+        ds = ds.isel(time_counter=0).drop_vars('time_counter') 
+        # (isel followed by drop vars allows you to write a new time_counter in the next line)
+        ds['time_counter'] = datetime.strptime(ds.encoding['source'][-20:-9], 'y%Ym%md%d') 
+        # (ds.encoding gives you the filepath, which in the case of ECP007 contains the date as well)
+        return ds
+   
+    # Open sesame
+    DS = xr.open_mfdataset(filepaths_gridT,
+                           preprocess=fix_time_dim,
+                           concat_dim='time_counter',
+                           combine='nested',
+                           decode_cf=False,
+                           compat='override',
+                           coords='minimal',
+                           engine='netcdf4')
+    latlon = xr.open_dataset(filepaths_gridT[0]) # Assigning lats and lons manually
+    DS = DS.assign_coords({'nav_lat':latlon.nav_lat,'nav_lon':latlon.nav_lon})
+    print('Grid T files opened')
 
-    # Add horizontal cell dims (drop depths now because they aren't needed)
-    DS[['e1t','e2t']] = e1t,e2t
+    # Applying masks
+    DS[['e1t','e2t']] = e1t,e2t # Add T cell dimensions as variables
+    DS = DS.where(tmask == 1) # Apply tmask (i.e., masking bathy)
+    DS.coords['mask'] = mask
+   
+    #== Beginning calculations ==#
 
-    # Apply tmask (which I /think/ it for land etc.)
-    DS = DS.where(tmask.isel(deptht=0) == 1)    
+    # We are looking at two related ideas, but not convective volume (as with ANHA4): 
+    #    (1) Full domain maps of yearly mean and max MLD,
+    #    (2) 10-yr time series of mean MLD in a masked region in the interior Lab Sea. 
+
+    # (1) Starting with full domain maps of yearly mean and max MLD
+    global_MLD_maps = DS['somxlts'].groupby('time_counter.year').max(dim=['time_counter'],skipna=True).to_dataset().rename({'somxlts':'yearly_max','x':'x_grid_T','y':'y_grid_T'})
+    global_MLD_maps['yearly_mean'] = DS['somxlts'].groupby('time_counter.year').mean(dim=['time_counter'], skipna=True).rename({'x':'x_grid_T','y':'y_grid_T'})
+    global_MLD_maps.to_netcdf('MLD_yearly_maps_full_domain_LAB60.nc')
+    print('Saved: MLD yearly maps for LAB60')
+
+    # (2) Finally looking at time series of MLD in the interior Lab Sea
+    # I'm pretty sure I originally copied this weighting technique from the xarray docs
+    DS = DS.where(DS.mask == 1, drop=True)
+    DS = DS.drop_vars(['mask'])
+    areas = DS.e1t*DS.e2t
+    avgArea = areas.mean(dim=['y','x'],skipna=True)
+    weights = areas/avgArea
+    weights = weights.fillna(0)
+    MLD = DS['somxlts'].weighted(weights)
+    avgMLD_region = MLD.mean(dim=['y','x'],skipna=True)
+    avgMLD_region.to_netcdf('ls3k_MLD_mean_LAB60.nc')
+    print('Saved: MLD time series analyses for LAB60')
+
+    print('Completed: Stratification analyses for LAB60')
 
 if __name__ == '__main__':
     MLD_LAB60()
-    
     #MLD_Argo()
     #for run in ['EPM151','EPM152','EPM155','EPM156','EPM157','EPM158']:
     #    MLD(run)

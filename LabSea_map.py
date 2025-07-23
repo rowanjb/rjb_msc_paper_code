@@ -149,7 +149,6 @@ p1 = ax1.pcolormesh(ds.nav_lon, ds.nav_lat, z3, transform=ccrs.PlateCarree(), cm
 # Finally, add the label
 ax1.text(0.1, 0.95, 'a', transform=ax1.transAxes,fontsize=14, fontweight='bold', va='top', ha='right',bbox=dict(facecolor='white', edgecolor='none', boxstyle='circle,pad=0.1'))
 
-# Save and close figure (generally prefer pdf, but my inkscape crashes with pdfs)
-#plt.savefig('figure_LabSea_and_grid_map.pdf', format='pdf', dpi=600) 
-plt.savefig('figure_LabSea_and_grid_map.jpg', dpi=1200) 
+# Save and close figure
+plt.savefig('figure_LabSea_and_grid_map.pdf', format='pdf', dpi=600) 
 plt.clf()

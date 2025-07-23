@@ -218,10 +218,43 @@ def MLD_LAB60():
     Creates and saves datasets of MLDs and convective
     volumes in the Lab Sea."""
 
+    print("Beginning: MLD calculations for LAB60 (ECP007)")
+
+    # Masks (for land, bathymetry, etc. and horiz. grid dimensions)
+    with xr.open_dataset('masks/2_ANHA4-ECP007_mask.nc') as DS:
+        tmask = tmask = DS.tmask[0,0,:,:] #DS.tmask[0,:,:,:].rename({'z': 'deptht', 'y': 'y_grid_T', 'x': 'x_grid_T'})
+    with xr.open_dataset('masks/2_ANHA4-ECP007_mesh_hgr.nc') as DS:
+        e1t = DS.e1t[0,:,:]#.rename({'y': 'y_grid_T', 'x': 'x_grid_T'})
+        e2t = DS.e2t[0,:,:]#.rename({'y': 'y_grid_T', 'x': 'x_grid_T'})
+    with xr.open_dataset('masks/2_ANHA4-ECP007_mesh_zgr.nc') as DS:
+        e3t = DS.e3t_ps[0,:,:] # Static e3
+    mask = xr.open_dataarray('masks/mask_LS_3000_LAB60.nc').astype(int)
+
+    print(tmask)
     
+    quit()
+
+
+    # Text file of paths to non-empty model output
+    gridT_txt = '../filepaths/'+run+'_gridT_filepaths_jul2025.txt'
+
+    # Open the text files and get lists of the .nc output filepaths
+    with open(gridT_txt) as f: lines = f.readlines()
+    filepaths_gridT = [line.strip() for line in lines]
+
+    # Open the files and look at MLD 
+    preprocess_gridT = lambda ds: ds[['somxlts']]
+    DS = xr.open_mfdataset(filepaths_gridT,preprocess=preprocess_gridT)
+    DS = DS.rename({'somxlts':'MLD'}) # Easier to handle this way
+
+    # Add horizontal cell dims (drop depths now because they aren't needed)
+    DS[['e1t','e2t']] = e1t,e2t
+
+    # Apply tmask (which I /think/ it for land etc.)
+    DS = DS.where(tmask.isel(deptht=0) == 1)    
 
 if __name__ == '__main__':
-    #MLD_LAB60
+    MLD_LAB60()
     
     #MLD_Argo()
     #for run in ['EPM151','EPM152','EPM155','EPM156','EPM157','EPM158']:

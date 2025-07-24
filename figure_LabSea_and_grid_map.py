@@ -58,9 +58,21 @@ ax2.set_ylim(-r, r)
 # Colour map; good for everyone
 cm = 'viridis'
 
-# Plotting data
+# Plotting background
 ax2.set_global()
 ax2.stock_img()
+
+# Adding grid lines
+gl = ax2.gridlines(draw_labels=True, dms=False, x_inline=False, y_inline=False, linewidth=0.5)
+gl.top_labels=False #suppress top labels
+gl.right_labels=False #suppress right labels
+gl.rotate_labels=False
+gl.ylocator = mticker.FixedLocator([-45, 0, 45])
+gl.xlocator = mticker.FixedLocator([-180,-90, 0, 90,180])
+gl.xlabel_style = {'size': 9}
+gl.ylabel_style = {'size': 9}
+
+# Plotting data
 p1 = ax2.pcolormesh(ds.nav_lon, ds.nav_lat, ds.e1t, transform=ccrs.PlateCarree(), cmap=cm, rasterized=True)
 ax_cb = plt.axes([0.55, 0.2, 0.35, 0.022])
 cb = plt.colorbar(p1,cax=ax_cb,orientation='horizontal')
@@ -71,7 +83,7 @@ cb.ax.tick_params(labelsize=9)
 ax2.coastlines(resolution='10m', linewidth=0.5)
 
 # Finally, add the label
-ax2.text(0.1, 0.935, 'b', transform=ax2.transAxes,fontsize=14, fontweight='bold', va='top', ha='right',bbox=dict(facecolor='white', edgecolor='none', boxstyle='circle,pad=0.1'))
+ax2.text(0, 0.9325, 'b', transform=ax2.transAxes,fontsize=14, fontweight='bold', va='top', ha='right',bbox=dict(facecolor='white', edgecolor='none', boxstyle='circle,pad=0.1'))
 
 #-- set environment variable CARTOPY_USER_BACKGROUNDS
 # from: https://docs.dkrz.de/doc/visualization/sw/python/source_code/python-matplotlib-example-high-resolution-background-image-plot.html
@@ -144,7 +156,7 @@ z3[z3>0] = 1
 z3[z3==0] = np.nan
 
 # Plotting the bounding cells
-p1 = ax1.pcolormesh(ds.nav_lon, ds.nav_lat, z3, transform=ccrs.PlateCarree(), cmap=cmap, rasterized=True)
+p1 = ax1.pcolormesh(ds.nav_lon, ds.nav_lat, z3, transform=ccrs.PlateCarree(), cmap=cmap)
 
 # Finally, add the label
 ax1.text(0.1, 0.95, 'a', transform=ax1.transAxes,fontsize=14, fontweight='bold', va='top', ha='right',bbox=dict(facecolor='white', edgecolor='none', boxstyle='circle,pad=0.1'))

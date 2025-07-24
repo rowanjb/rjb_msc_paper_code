@@ -10,6 +10,7 @@ import cartopy.crs as ccrs
 import cartopy.feature as feature
 from ls3k_mask_boundary import ls3k_boundary
 import gsw
+from cftime import DatetimeNoLeap
 
 def identify_flux_faces():
     """Identifies the U and V faces defining the edge of the 3,000 m isobath mask.
@@ -248,6 +249,7 @@ def identify_projected_dims():
     """Identifies the horizontal dimensions of the projected areas.
     Previously calculated the total area using invariant e3t values (cell heights).
     Now updated so that calculate_fluxes() can utilise variable cell heights.
+    Also saves the (invariant) areas in case they are useful. 
     Saves output into a netcdf file."""
 
     # Open the data and various mask and mesh files
@@ -255,37 +257,53 @@ def identify_projected_dims():
     ds_mesh = xr.open_dataset('masks/ANHA4_mesh_mask.nc').isel(t=0)    
 
     # Calculating the projected areas
-    ds_mesh['U_face_areas'] = ds_mesh['e2u']#*ds_mesh['e3u'] # 2 == north-west dim
-    ds_mesh['V_face_areas'] = ds_mesh['e1v']#*ds_mesh['e3v'] # 1 == east-west dim
-   
+    ds_mesh['U_face_dims'] = ds_mesh['e2u']
+    ds_mesh['V_face_dims'] = ds_mesh['e1v']
+    ds_mesh['U_face_areas'] = ds_mesh['e2u']*ds_mesh['e3u'] # 2 == north-west dim
+    ds_mesh['V_face_areas'] = ds_mesh['e1v']*ds_mesh['e3v'] # 1 == east-west dim
+    ds_mesh['face_nav_lon'] = ds_mesh['nav_lon']
+    ds_mesh['face_nav_lat'] = ds_mesh['nav_lat']
+
     # Constructing array of areas
     num_depths = len(ds_mesh['z'].to_numpy())
     num_cells = len(ds['ids'].to_numpy())
     rows = ds['y_grid_T'].values
     cols = ds['x_grid_T'].values
     directions = ds['directions'].values
+    dims = np.zeros( (num_cells, num_depths) )
     areas = np.zeros( (num_cells, num_depths) )
+    face_nav_lon = np.zeros( (num_cells) )
+    face_nav_lat = np.zeros( (num_cells) )
     for n in np.arange(num_cells): # For each cell in the boundary 
         row, col, direction = rows[n], cols[n], directions[n]
+        face_nav_lon[n] = ds_mesh['face_nav_lon'].isel(y=row,x=col).values # Save the coordinates
+        face_nav_lat[n] = ds_mesh['face_nav_lat'].isel(y=row,x=col).values
         if direction=='southward' or direction=='northward': # If the flux is north-south... 
-            areas[n,:] = ds_mesh['V_face_areas'].isel(y=row,x=col).values # Then we want a v dimension
+            dims[n,:] = ds_mesh['V_face_dims'].isel(y=row,x=col).values # Then we want a v dimension
+            areas[n,:] = ds_mesh['V_face_areas'].isel(y=row,x=col).values
         elif direction=='eastward' or direction=='westward': # If the flux is east-west...
-            areas[n,:] = ds_mesh['U_face_areas'].isel(y=row,x=col).values # Then we want a u dimension
+            dims[n,:] = ds_mesh['U_face_dims'].isel(y=row,x=col).values # Then we want a u dimension
+            areas[n,:] = ds_mesh['U_face_areas'].isel(y=row,x=col).values
         else:
             print('Broken loop with error code 6')
             quit()
 
     ds_final = xr.Dataset(
         {
-            "horiz_dim": (("ids","z"),areas),
+            "horiz_dim": (("ids","z"),dims),
+            "projected_area": (("ids","z"),areas),
         },
         coords={
             "ids": ds['ids'].values,
             "z": ds_mesh['z'].values,
+            "nav_lon": (("ids"),face_nav_lon),
+            "nav_lat": (("ids"),face_nav_lat),
         },
-        attrs=dict(description="Appropriate horizontal dimension of all faces which have non-zero flux into the interior of masked area."
-                                "If flux is east-west (U velocity) then the dimension is e2u."
-                                "If flux is north-south (V velocity) then the dimension is e1v"),
+        attrs=dict(description="Contains the horizontal dimension of all faces that have non-zero flux into the interior of masked area."
+                               "Also contains the area of the face based on the invariant mesh e1t dimension."
+                               "(Real cell areas change with changing SSH.)"
+                               "If flux is east-west (U velocity) then the horizontal dimension is e2u."
+                               "If flux is north-south (V velocity) then the horizontal dimension is e1v"),
     )
     ds_final.to_netcdf('masks/ls3k_flux_face_hzdims.nc')
 
@@ -397,6 +415,6 @@ if __name__=="__main__":
     #test_plot_ls3k_flux_boundary()
     #linearise_flux_face_ids()
     #test_plot_ls3k_flux_boundary_faces()
-    #identify_projected_dims()
-    for run in ['EPM151','EPM152','EPM155','EPM156','EPM157','EPM158']:
-        calculate_fluxes(run)
+    identify_projected_dims()
+    #for run in ['EPM151','EPM152','EPM155','EPM156','EPM157','EPM158']:
+    #    calculate_fluxes(run)

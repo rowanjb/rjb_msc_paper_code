@@ -7,6 +7,8 @@ __pycache__/
 *.sh
 *.err
 *.out
+*.pdf
+*.jpg
 
 !masks/ANHA4_mesh_mask.nc
 !masks/ARGOProfiles_mask.nc

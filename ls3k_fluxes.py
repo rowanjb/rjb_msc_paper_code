@@ -309,7 +309,7 @@ def calculate_fluxes(run):
     gridU_fps = [line.strip() for line in lines]
     with open('../filepaths/'+run+'_gridV_filepaths_jul2025.txt') as f: lines = f.readlines()
     gridV_fps = [line.strip() for line in lines]
-    pp_gridT = lambda ds: ds[['votemper','vosaline']]
+    pp_gridT = lambda ds: ds[['e3t','votemper','vosaline']]
     pp_gridU = lambda ds: ds[['e3u','vozocrtx']]
     pp_gridV = lambda ds: ds[['e3v','vomecrty']]
     dst = xr.open_mfdataset(gridT_fps, preprocess=pp_gridT)
@@ -357,13 +357,19 @@ def calculate_fluxes(run):
     # Salt content
     dst['salt_flux'] = dst['vol_flux']*dst['vosaline']*dst['insit_dens'] # m**3/s * g/kg * kg/m**3
 
+    # Freshwater flux
+    # (Imagine a volume flux of water with a salinity of 34--the amount of FWF is a fraction of the total volume flux)
+    dst['fw_flux'] = dst['vol_flux']*(34.8-dst['SA'])/34.8 # m**3/s
+
     # Saving
-    dst = dst[['vol_flux','heat_flux','salt_flux']]
+    dst = dst[['vol_flux','heat_flux','salt_flux','fw_flux','pot_dens']]
     dst = dst.assign_attrs(description="Fluxes into the interior Lab Sea", 
                            title="Fluxes into the interior Lab Sea",
                            vol_flux_units="m**3/s",
                            heat_flux_units="J/s",
-                           salt_flux_units="g/s")
+                           salt_flux_units="g/s",
+                           fw_flux_units="m**3/s",
+                           pot_dens_units="kg/m**3")
     print("LS3k fluxes calc'd for: "+run)
     dst.to_netcdf('ls3k_fluxes_'+run+'.nc')
     dst.close()

@@ -11,16 +11,30 @@ import matplotlib.pyplot as plt
 from datetime import datetime, timedelta
 from scipy.interpolate import griddata
 
-def regrid_Argo():
-    """Regrids the ARGO MLD data so that it can be compared to ANHA4 output."""
+def regrid_Argo(full_grid=False,monthly=False):
+    """Regrids the ARGO MLD data so that it can be compared to ANHA4 output.
+    full_grid is a boolean referring to whether I am looking at the Lab Sea only or the full domain.
+    monthly is a boolean referring to whether I want the standrd 5-daily output or monthly."""
 
     # Open netCDF files 
     ds = xr.open_dataset('Argo_mixedlayers_all_04142022.nc') # downloaded from mixedlayer.ucsd.edu
     mesh = xr.open_dataset('masks/mesh_hgr_ANHA4.nc') # standard ANHA4 grid
 
-    # Masking the general Lab Sea regions
-    ds = ds.where( (ds.profilelat>50) & (ds.profilelat<65) & (ds.profilelon<-45) & (ds.profilelon>-65), drop=True)
-    mesh = mesh.where( (mesh.x>100) & (mesh.x<250) & (mesh.y>300) & (mesh.y<500), drop=True) 
+    ## Masking the general Lab Sea regions
+    if full_grid==False:
+        ds = ds.where( (ds.profilelat>50) & (ds.profilelat<65) & (ds.profilelon<-45) & (ds.profilelon>-65), drop=True)
+        mesh = mesh.where( (mesh.x>100) & (mesh.x<250) & (mesh.y>300) & (mesh.y<500), drop=True) 
+    elif full_grid==True:
+        print(mesh['nav_lat'].isel(x=0,y=0).values, mesh['nav_lon'].isel(x=0,y=0).values)
+        print(mesh['nav_lat'].isel(x=0,y=-1).values, mesh['nav_lon'].isel(x=0,y=-1).values)
+        print(mesh['nav_lat'].isel(x=-1,y=-1).values, mesh['nav_lon'].isel(x=-1,y=-1).values)
+        print(mesh['nav_lat'].isel(x=-1,y=0).values, mesh['nav_lon'].isel(x=-1,y=0).values)
+        print(mesh['nav_lat'].max().values, mesh['nav_lon'].max().values)
+        print(mesh['nav_lat'].min().values, mesh['nav_lon'].min().values)
+        quit()
+    else:
+        print("full_grid should be bool")
+        quit()
 
     # Binning the ARGO data in time (based on datevec, I think)
     start_datetime = datetime(1,1,1,0,0,0) # Jan 1, year 1 (need to subtract 365 w/r/t profiledate, which measures from Jan 1, year 0)
@@ -79,4 +93,4 @@ def regrid_Argo():
     ARGO.to_netcdf('Argo_mld_ANHA4_LabSea.nc')
 
 if __name__=="__main__":
-    regrid_Argo()
+    regrid_Argo(full_grid=True,monthly=True)

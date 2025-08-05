@@ -10,6 +10,9 @@ import cartopy.crs as ccrs
 import cartopy.feature as feature
 from ls3k_mask_boundary import ls3k_boundary
 import gsw
+import xoak
+#from metpy.interpolate import geodesic
+import pyproj
 from cftime import DatetimeNoLeap
 
 def identify_flux_faces():
@@ -207,6 +210,24 @@ def test_plot_ls3k_flux_boundary_faces():
     dsu = xr.open_dataset(example_gridU_fp)
     dsv = xr.open_dataset(example_gridV_fp)
 
+    # Returns angled of faces based on vectors of latitudes and longtitudes
+    def get_face_angles(ds,mesh):
+        mesh = mesh.set_coords(['nav_lat', 'nav_lon'])
+        mesh.xoak.set_index(['nav_lat', 'nav_lon'], 'scipy_kdtree')
+        geod = pyproj.Geod(ellps='sphere') #use pyproj.Geod class
+        forward_azimuth = []
+        for id in ds['ids'].values: 
+            xid = ds['x_grid_T'].sel(ids=id).values
+            yid = ds['y_grid_T'].sel(ids=id).values
+            lat1 = mesh['nav_lat'].isel(x=xid,y=yid)
+            lat2 = mesh['nav_lat'].isel(x=xid+1,y=yid)
+            lon1 = mesh['nav_lon'].isel(x=xid,y=yid)
+            lon2 = mesh['nav_lon'].isel(x=xid+1,y=yid)
+            az12, __, dist = geod.inv(lon1,lat1,lon2,lat2)
+            forward_azimuth = np.append(forward_azimuth, az12)
+        return np.radians(forward_azimuth)
+    angles = get_face_angles(ds, ds_mesh)
+
     rows = ds['y_grid_T'].to_numpy()
     cols = ds['x_grid_T'].to_numpy()
     directions = ds['directions'].to_numpy()
@@ -214,36 +235,39 @@ def test_plot_ls3k_flux_boundary_faces():
     u, v = [], []
     for n,row in enumerate(rows):
         col = cols[n]
+        angle = angles[n]
         if directions[n]=='northward':
             lons.append(dsv.nav_lon.isel(y=row,x=col).to_numpy())
             lats.append(dsv.nav_lat.isel(y=row,x=col).to_numpy())
-            v.append(0.3),u.append(0)
+            v.append(np.sin(angle)),u.append(-2*np.cos(angle)) # Figured this out with trial and error
+            # Something is off with my angle calculations, but they aren't related to the actualy flux calcs,
+            # only to this plot, so I am happy to leave it 
         if directions[n]=='southward':
             lons.append(dsv.nav_lon.isel(y=row,x=col).to_numpy())
             lats.append(dsv.nav_lat.isel(y=row,x=col).to_numpy())
-            v.append(-0.3),u.append(0)
+            v.append(-np.sin(angle)),u.append(2*np.cos(angle))
         if directions[n]=='eastward':
             lons.append(dsu.nav_lon.isel(y=row,x=col).to_numpy())
             lats.append(dsu.nav_lat.isel(y=row,x=col).to_numpy())
-            u.append(0.3),v.append(0)
+            u.append(np.sin(angle)),v.append(0.5*np.cos(angle))
         if directions[n]=='westward':
             lons.append(dsu.nav_lon.isel(y=row,x=col).to_numpy())
             lats.append(dsu.nav_lat.isel(y=row,x=col).to_numpy())
-            u.append(-0.3),v.append(0)
+            u.append(-np.sin(angle)),v.append(-0.5*np.cos(angle))
     
     lons = [float(i) for i in lons]
     lats = [float(i) for i in lats]
 
-    westLon, eastLon, northLat, southLat = -65, -40, 67, 51
+    westLon, eastLon, northLat, southLat = -65, -40, 65, 51
     land_50m = feature.NaturalEarthFeature('physical', 'land', '50m',edgecolor='black', facecolor='gray')
     projection = ccrs.AlbersEqualArea(central_longitude=-55, central_latitude=50,standard_parallels=(southLat,northLat))
     ax = plt.subplot(1, 1, 1, projection=projection)
     ax.set_extent([westLon, eastLon, southLat, northLat], crs=ccrs.PlateCarree())
     ax.add_feature(land_50m, color=[0.8, 0.8, 0.8])
     ax.coastlines(resolution='50m')
-    ax.pcolormesh(ds_mesh.nav_lon,ds_mesh.nav_lat,ds_mask['mask_LS_3000'],transform=ccrs.PlateCarree())
-    ax.quiver(np.array(lons),np.array(lats),np.array(u),np.array(v),transform=ccrs.PlateCarree(),width=0.001)
-    plt.savefig('test.png', dpi=1200)
+    ax.pcolormesh(ds_mesh.nav_lon,ds_mesh.nav_lat,ds_mask['mask_LS_3000'],cmap=plt.colormaps['tab20'],transform=ccrs.PlateCarree())#,rasterized=True)
+    ax.quiver(np.array(lons),np.array(lats),np.array(u),np.array(v),width=0.001,transform=ccrs.PlateCarree(),scale=75)
+    plt.savefig('example_flux_faces.pdf')#,dpi=1200)
 
 def identify_projected_dims():
     """Identifies the horizontal dimensions of the projected areas.
@@ -420,7 +444,7 @@ if __name__=="__main__":
     #identify_flux_faces()
     #test_plot_ls3k_flux_boundary()
     #linearise_flux_face_ids()
-    #test_plot_ls3k_flux_boundary_faces()
-    identify_projected_dims()
+    test_plot_ls3k_flux_boundary_faces()
+    #identify_projected_dims()
     #for run in ['EPM151','EPM152','EPM155','EPM156','EPM157','EPM158']:
     #    calculate_fluxes(run)

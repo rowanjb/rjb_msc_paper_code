@@ -30,8 +30,8 @@ def regrid_Argo(region="LabSea"):
         ds = ds.where( (ds.profilelat>-1) & (ds.profilelat<81) & (ds.profilelon<15) & (ds.profilelon>-100), drop=True) # Generally defining the North Atlantic
         mesh = mesh.where( (mesh.nav_lat>-2) & (mesh.nav_lat<82) & (mesh.nav_lon<16) & (mesh.nav_lon>-101), drop=True) # Slightly bigger than for the Argo dataset
         # Note we'll properly mask the NA later
-        start_date = datetime(2008,1,1,0,0,0) - datetime(1,1,1,0,0,0) - timedelta(days=365) # First legal datetime is Jan 1, 0001
-        end_date = datetime(2018,1,1,0,0,0) - datetime(1,1,1,0,0,0) - timedelta(days=365)
+        start_date = datetime(2008,1,1,0,0,0) - datetime(1,1,1,0,0,0) + timedelta(days=365) # First legal datetime is Jan 1, 0001
+        end_date = datetime(2018,1,1,0,0,0) - datetime(1,1,1,0,0,0) + timedelta(days=365) # Basically converts into a timedelta from 1-1-0000
         ds = ds.where( (ds.profiledate>start_date.days) & (ds.profiledate<end_date.days), drop=True)
     else:
         print("region string is illegal; must be either 'LabSea' or 'NorthAtlantic'")
@@ -76,9 +76,14 @@ def regrid_Argo(region="LabSea"):
         distances = (abslat**2 + abslon**2 )**0.5
 
         # Finding the shortest distance and the closest grid cell
-        shortest_distance = np.min(distances)
-        [idy],[idx] = np.where( distances == shortest_distance )
-        
+        shortest_distance = np.nanmin(distances)
+        try: # If this doesn't work, it's because the distance between cells is equal
+            [idy],[idx] = np.where( distances == shortest_distance )
+        except: # Therefore we take the first cell
+            ids = np.where( distances == shortest_distance )
+            idy = ids[0][0]
+            idx = ids[1][0]
+
         # Loading the number of Argo profiles in the same cell during the same period
         count = ARGO['num_profiles'].loc[dict(x=idx,y=idy,date=dtdates[i])].to_numpy()
         
@@ -103,11 +108,9 @@ def regrid_Argo(region="LabSea"):
         # First, we've already cut down to just the period of interest from 2008 to 2018
         # We've also cut down the mesh to the general North Altantic, although we will properly mask it later
         # Now we'll reample monthly and save
-        ARGO.resample(time_counter='1M').mean(dim=['date'],skipna=True)
-        print('Max profiles in one cell at one time: ' + str(ARGO.num_profiles.max().to_numpy())) # Just interesting
-        ARGO.to_netcdf('Argo_mld_ANHA4_NorthAtlantic.nc')
+        #ARGO.resample(date='1M').mean(dim=['date'],skipna=True).to_netcdf('Argo_mld_ANHA4_NorthAtlantic.nc')
         print('Argo MLD data saved for the North Atlantic')     
 
 if __name__=="__main__":
-    regrid_Argo(region="LabSea")
+    #regrid_Argo(region="LabSea")
     regrid_Argo(region="NorthAtlantic")

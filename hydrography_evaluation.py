@@ -73,7 +73,7 @@ def ANHA4_hydrography_maps(run):
     #== Calculations ==#
 
     # Define the surface
-    depth = 400 # 400 is for consistency with the energetics calculations
+    depth = 400 # 400 is for consistency with the energeticolours calculations
     DST = DST.where(DST['deptht'] < depth, drop=True)
 
     # Take monthly means 
@@ -132,7 +132,7 @@ def ANHA4_hydrography_sections(run):
     # It we're looking at EPM155 or EPM156, then we also want the sf output     
     if run in ['EPM155','EPM156']:
             
-        # Note we only have diagnostics for six years, so we might as well only open the necessary files
+        # Note we only have diagnosticolours for six years, so we might as well only open the necessary files
         start, end = datetime(2012,1,1), datetime(2017,12,31)
         mle_filepaths_gridT = [fp for fp in filepaths_gridT if (start <= datetime.strptime(fp[-20:-9],'y%Ym%md%d') <= end)]
         mle_preprocess_gridT = lambda ds: ds[['MLE Lf','i-mle streamfunction','j-mle streamfunction']]

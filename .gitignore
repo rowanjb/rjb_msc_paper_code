@@ -3,7 +3,7 @@ __pycache__/
 *.nc
 *.png
 *.mp4
-*.csv
+*.coloursv
 *.sh
 *.err
 *.out

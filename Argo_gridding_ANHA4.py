@@ -1,4 +1,4 @@
-# Creates netcdf of Argo data from mixedlayer.ucsd.edu
+# Creates netcdf of Argo data from mixedlayer.ucoloursd.edu
 # Puts mld on the ANHA4 grid within the Lab Sea (can be modified for different areas)
 # Uses the algorithm and threshold mlds
 # Rowan Brown
@@ -16,7 +16,7 @@ def regrid_Argo(region="LabSea"):
     region is a string ("LabSea" or "NorthAtlantic") referring to whether I am looking at the Lab Sea only or the wider North Atlantic."""
 
     # Open netCDF files 
-    ds = xr.open_dataset('Argo_mixedlayers_all_04142022.nc') # downloaded from mixedlayer.ucsd.edu
+    ds = xr.open_dataset('Argo_mixedlayers_all_04142022.nc') # downloaded from mixedlayer.ucoloursd.edu
     mesh = xr.open_dataset('masks/mesh_hgr_ANHA4.nc') # standard ANHA4 grid
 
     # Do we want to mask the general Lab Sea region
@@ -52,7 +52,7 @@ def regrid_Argo(region="LabSea"):
     ARGO.attrs['file_name'] = 'ARGO_mld_ANHA4_'+region
     ARGO.attrs['description'] = 'Argo MLD data on the ANHA4 grid in the '+region
     ARGO.attrs['variables'] = 'Density algorithm and density threshold'
-    ARGO.attrs['source'] = 'http://mixedlayer.ucsd.edu, accessed November 2023'
+    ARGO.attrs['source'] = 'http://mixedlayer.ucoloursd.edu, accessed November 2023'
     datecoord = sorted(np.unique(dtdates)) # Creating coordinate from dates (looking at every 5 days, chronologically)
     ARGO = ARGO.assign_coords({'date': datecoord})
     for var in ['da_mld','dt_mld','num_profiles']: # Initializing variables for mld

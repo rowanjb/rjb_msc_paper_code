@@ -34,7 +34,7 @@ def MLE(run):
     with open(gridT_txt) as f: lines = f.readlines()
     filepaths_gridT = [line.strip() for line in lines]
     
-    # Note we only have diagnostics for six years, so we might as well only open the necessary files
+    # Note we only have diagnosticolours for six years, so we might as well only open the necessary files
     start, end = datetime(2012,1,1), datetime(2017,12,31)
     filepaths_gridT = [fp for fp in filepaths_gridT if (start <= datetime.strptime(fp[-20:-9],'y%Ym%md%d') <= end)]
 
@@ -73,7 +73,7 @@ def MLE(run):
     DS['volume'] = DS.e1t*DS.e3t*DS.e2t # Volume of each cell
     DS['weights'] = DS['volume']/DS['volume'].mean(['deptht','y_grid_T','x_grid_T'],skipna=True)
 
-    # Final calcs and saving data that we want
+    # Final calcolours and saving data that we want
     DS['Psi_weighted'] = DS['Psi']*DS['weights'] # Can now take mean
     DS['Psi_mean'] = DS['Psi_weighted'].mean(['deptht','y_grid_T','x_grid_T'], skipna=True)
     DS['Psi_mean'].to_netcdf('MLE_psi_time_series_'+run+'.nc')

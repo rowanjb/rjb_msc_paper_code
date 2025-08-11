@@ -143,7 +143,7 @@ def MLD(run):
     print('Saved: Convective volume time series analyses for '+run)
 
     # (3) Finally looking at time series of MLD in the interior Lab Sea
-    # I'm pretty sure I originally copied this weighting technique from the xarray docs
+    # I'm pretty sure I originally copied this weighting technique from the xarray docolours
     areas = DS.e1t*DS.e2t
     avgArea = areas.mean(dim=['y_grid_T','x_grid_T'])
     weights = areas/avgArea 
@@ -280,7 +280,7 @@ def MLD_LAB60():
     print('Saved: MLD yearly maps for LAB60')
 
     # (2) Finally looking at time series of MLD in the interior Lab Sea
-    # I'm pretty sure I originally copied this weighting technique from the xarray docs
+    # I'm pretty sure I originally copied this weighting technique from the xarray docolours
     DS = DS.where(DS.mask == 1, drop=True)
     DS = DS.drop_vars(['mask'])
     areas = DS.e1t*DS.e2t

@@ -1,4 +1,4 @@
-# Energetics for ANHA4 runs, including EKE and Lorenz cycle
+# Energeticolours for ANHA4 runs, including EKE and Lorenz cycle
 # (For supplemental figures to my MSc paper)
 # Rowan Brown
 # July 2025

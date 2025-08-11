@@ -240,7 +240,7 @@ def test_plot_ls3k_flux_boundary_faces():
             lons.append(dsv.nav_lon.isel(y=row,x=col).to_numpy())
             lats.append(dsv.nav_lat.isel(y=row,x=col).to_numpy())
             v.append(np.sin(angle)),u.append(-2*np.cos(angle)) # Figured this out with trial and error
-            # Something is off with my angle calculations, but they aren't related to the actualy flux calcs,
+            # Something is off with my angle calculations, but they aren't related to the actualy flux calcolours,
             # only to this plot, so I am happy to leave it 
         if directions[n]=='southward':
             lons.append(dsv.nav_lon.isel(y=row,x=col).to_numpy())
@@ -392,7 +392,7 @@ def calculate_fluxes(run):
     # Volume flux 
     dst['vol_flux'] = dst['horiz_dims']*dst['vel*e3'] # m * m**2/s = m**3/s
     
-    # Heat flux, calculated with refT=-2, gsw.cp_t_exact, and gsw.pot_dens, which is same as my heat content calcs
+    # Heat flux, calculated with refT=-2, gsw.cp_t_exact, and gsw.pot_dens, which is same as my heat content calcolours
     refT = -2
     dst['heat_flux'] = dst['vol_flux']*dst['pot_dens']*dst['cp']*(dst['votemper']-refT) # m**3/s * kg/m**3 * J/kgC * C = J/s
 

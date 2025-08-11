@@ -24,11 +24,6 @@ ds = xr.open_dataset(mesh_mask)
 gridT_txt = '../filepaths/EPM151_gridT_filepaths.txt'
 with open(gridT_txt) as f: lines = f.readlines()
 filepaths_gridT = [line.strip() for line in lines]
-ds_ex = xr.open_dataset(filepaths_gridT[10])
-mask = ds_ex['votemper'].isel(deptht=0,time_counter=0).to_numpy()
-
-# Combine
-ds = ds.assign_coords({'mask': (['y','x'],mask)})
 
 # Shapefile of land with 1:50,000,000 scale
 land_50m = feature.NaturalEarthFeature(
@@ -126,7 +121,7 @@ ax2.text(
 )
 
 #-- set environment variable CARTOPY_USER_BACKGROUNDS
-# from: https://docs.dkrz.de/doc/visualization/sw/python/source_code/...
+# from: https://docolours.dkrz.de/doc/visualization/sw/python/source_code/...
 # python-matplotlib-example-high-resolution-background-image-plot.html
 os.environ['CARTOPY_USER_BACKGROUNDS'] = '../Backgrounds/'
 
@@ -225,7 +220,6 @@ p2 = ax2.pcolormesh(
     z3, 
     transform=ccrs.PlateCarree(), 
     cmap=cmap)
-
 
 # Finally, add the label
 ax1.text(

@@ -8,3 +8,16 @@ masks : contains nc files of various masks and meshes
 
 filepaths.py : creates text files (saved outside this repo) of output files on Graham
 ls3k_mask_boundary.py : extracts the bounding cells defining the edge of the 3,000 m isobath mask
+ANHA4_grid_maker.py : 
+Argo_gridding_ANHA4.py :
+LabSea_map.py :
+MLE.py :
+energetics.py : 
+filepaths.py :
+hydrography_evaluation.py : 
+ls3k_biogeochem.py : 
+ls3k_contents.py :
+ls3k_fluxes.py : 
+ls3k_mask_boundary.py :
+mask_maker.py :
+stratification.py :

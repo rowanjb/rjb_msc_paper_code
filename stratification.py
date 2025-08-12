@@ -206,7 +206,9 @@ def MLD_Argo():
     avgArea = areas.mean(dim=['y','x'])
     weights = areas/avgArea
     weights = weights.fillna(0)
-    MLD = DS['da_mld'].weighted(weights)
+    MLD = DS['da_mld']
+    MLD = MLD.where(MLD!=0)
+    MLD = MLD.weighted(weights)
     avgMLD_region = MLD.mean(dim=['y','x'],skipna=True)
     avgMLD_region.to_netcdf('ls3k_MLD_mean_Argo.nc')
     print('Saved: MLD time series analyses for Argo')
@@ -298,5 +300,5 @@ if __name__ == '__main__':
     #for run in ['EPM151','EPM152','EPM155','EPM156','EPM157','EPM158']:
         #convective_resistance(run)    
         #MLD(run)
-    MLD_LAB60()
-    #MLD_Argo()
+    #MLD_LAB60()
+    MLD_Argo()

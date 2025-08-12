@@ -78,10 +78,7 @@ def plot_MLDs_body_figure():
                 )
             )
         elif 'Argo' in run: # Argo data
-            df = xr.open_dataarray(fp)
-            print(df)
-            quit()
-            #.drop_vars(['deptht']).to_dataframe(run)
+            df = xr.open_dataarray(fp).drop_vars(['deptht']).to_dataframe(run)
             df = df.reset_index()
             df['date'] = df['date'].astype(str)
             df['date'] = df['date'].map(
@@ -249,7 +246,7 @@ def plot_MLDs_body_figure():
         gl.xlocator = mticker.FixedLocator([-45, -55, -65])  #[-10, -20, -30, -40, -50, -60, -70, -80, -90])
         gl.xlabel_style = {'size': 12}
         gl.ylabel_style = {'size': 12}
-        p = ax.pcolormesh(ds.nav_lon_grid_T, ds.nav_lat_grid_T, ds['somxlts'], transform=ccrs.PlateCarree(), cmap='plasma', vmin=0, vmax=2500,rasterized=True) #norm=colors.SymLogNorm(linthresh=1, linscale=1,vmin=0, vmax=3000) ) #, vmin=0, vmax=4e-9,
+        p = ax.pcolormesh(ds.nav_lon_grid_T, ds.nav_lat_grid_T, da, transform=ccrs.PlateCarree(), cmap='plasma', vmin=0, vmax=2500,rasterized=True) #norm=colors.SymLogNorm(linthresh=1, linscale=1,vmin=0, vmax=3000) ) #, vmin=0, vmax=4e-9,
         ax.text(0.2, 0.9, letter, transform=ax.transAxes,fontsize=14, fontweight='bold', va='top', ha='right',bbox=dict(facecolor='white', edgecolor='none', boxstyle='circle,pad=0.1'))
         ax.text(0.93, 0.2, title, transform=ax.transAxes,fontsize=12, va='top', ha='right',bbox=dict(facecolor='white', edgecolor='none',alpha=0.6))
         return p

@@ -16,8 +16,6 @@ def regrid_Argo(region="LabSea"):
     region is a string ("LabSea" or "NorthAtlantic") referring to whether I am looking at the Lab Sea only or the wider North Atlantic."""
 
     # Open netCDF files 
-    print('test')
-    quit()
     ds = xr.open_dataset('Argo_mixedlayers_all_04142022.nc') # downloaded from mixedlayer.ucoloursd.edu
     mesh = xr.open_dataset('masks/mesh_hgr_ANHA4.nc') # standard ANHA4 grid
 
@@ -25,8 +23,6 @@ def regrid_Argo(region="LabSea"):
     if region=="LabSea": # If we don't want the full NA, we might as well save time now by excluding some points
         ds = ds.where( (ds.profilelat>50) & (ds.profilelat<65) & (ds.profilelon<-45) & (ds.profilelon>-65), drop=True)
         mesh = mesh.where( (mesh.x>100) & (mesh.x<250) & (mesh.y>300) & (mesh.y<500), drop=True) 
-        print('test')
-        quit()
     elif region=="NorthAtlantic": # If we do want the wider NA, we can only exclude certain points
         # Define NA as much larger than the LS, more like equator <-> Fram Strait and Gulf of Mexico <-> Baltic
         # We also only need 01.01.2008--31.12.2017, so might as well cut that down now too

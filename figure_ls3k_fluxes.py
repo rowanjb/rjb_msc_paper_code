@@ -488,7 +488,7 @@ def ls3k_plot_barh_diffs():
         fluxes = fluxes/(1000000000000) # Convert W -> TW
         for n,flux in enumerate(fluxes): # Loop through each flux/run
             if flux > 0: # If the flux is positive, then...
-                # The bottom for this iteration is the previous positive tally's result
+                # The bottom for this iteration is the previous positive tally
                 bottom[n] = bottom_pos_neg[0][n] 
                 # And then we add to the positive top row
                 bottom_pos_neg[0][n] = bottom_pos_neg[0][n] + flux 
@@ -558,6 +558,8 @@ def ls3k_plot_barh_diffs():
     ax3.set_xlim(-140,140)
     a3b.set_xlim(-140,140)
 
+    #== Adding map ==#
+
     # ax4 : Add map
     lons = np.zeros(len(EPM151['ids']))
     lats = np.zeros(len(EPM151['ids']))
@@ -619,6 +621,8 @@ def ls3k_plot_barh_diffs():
             boxstyle='circle,pad=0.1'
         )
     )
+
+    #== Final touches and legends ==#
 
     # Adding some nice grid lines
     ax1.xaxis.grid(True,linewidth=0.1,alpha=0.25)

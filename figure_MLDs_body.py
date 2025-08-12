@@ -78,7 +78,10 @@ def plot_MLDs_body_figure():
                 )
             )
         elif 'Argo' in run: # Argo data
-            df = xr.open_dataarray(fp).drop_vars(['deptht']).to_dataframe(run)
+            df = xr.open_dataarray(fp)
+            print(df)
+            quit()
+            #.drop_vars(['deptht']).to_dataframe(run)
             df = df.reset_index()
             df['date'] = df['date'].astype(str)
             df['date'] = df['date'].map(

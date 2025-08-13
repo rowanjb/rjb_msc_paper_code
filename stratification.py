@@ -159,7 +159,7 @@ def MLD(run):
     print('Completed: Stratification analyses for '+run)
 
 
-def MLD_Argo(region="labSea"):
+def MLD_Argo(region="LabSea"):
     """A shortened copy of MLD().
     Creates and saves datasets of Argo MLDs.
     Uses the regridded Argo ANHA4 datasets produced

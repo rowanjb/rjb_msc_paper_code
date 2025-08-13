@@ -9,6 +9,7 @@ __pycache__/
 *.out
 *.pdf
 *.jpg
+*.svg
 
 !masks/ANHA4_mesh_mask.nc
 !masks/ARGOProfiles_mask.nc

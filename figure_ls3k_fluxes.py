@@ -725,8 +725,8 @@ def ls3k_plot_barh_diffs():
         right=0.96
     )
 
-    # Saving
-    plt.savefig('figure_ls3k_fluxes_barh.pdf',format='pdf',dpi=600)
+    # This can be an svg because there are no rasterisations
+    plt.savefig('figure_ls3k_fluxes_barh.svg',format='svg')
 
 def ls3k_plot_volume_fluxes():
     """Creates figure of fluxes for paper."""

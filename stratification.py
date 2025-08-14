@@ -2,13 +2,10 @@
 # Rowan Brown
 # July 2025
 
-import numpy as np
-import pandas as pd
 import xarray as xr
-import cftime
 from datetime import datetime
 import gsw
-import os
+
 
 def convective_resistance(run):
     """Investigates the convective resistance in a region!"""
@@ -17,28 +14,32 @@ def convective_resistance(run):
 
     # Masks (for land, bathymetry, etc. and horiz. grid dimensions)
     with xr.open_dataset('masks/ANHA4_mesh_mask.nc') as DS:
-        tmask = DS.tmask[0,:,:,:].rename({'z': 'deptht', 'y': 'y_grid_T', 'x': 'x_grid_T'}) 
-        e1t = DS.e1t[0,:,:].rename({'y': 'y_grid_T', 'x': 'x_grid_T'})
-        e2t = DS.e2t[0,:,:].rename({'y': 'y_grid_T', 'x': 'x_grid_T'})
+        tmask = DS.tmask[0, :, :, :].rename(
+            {'z': 'deptht', 'y': 'y_grid_T', 'x': 'x_grid_T'})
+        e1t = DS.e1t[0, :, :].rename(
+            {'y': 'y_grid_T', 'x': 'x_grid_T'})
+        e2t = DS.e2t[0, :, :].rename(
+            {'y': 'y_grid_T', 'x': 'x_grid_T'})
     mask = xr.open_dataarray('masks/mask_LS_3000.nc').astype(int)
 
     # Text file of paths to non-empty model output
     gridT_txt = '../filepaths/'+run+'_gridT_filepaths_jul2025.txt'
 
     # Open the text files and get lists of the .nc output filepaths
-    with open(gridT_txt) as f: lines = f.readlines()
+    with open(gridT_txt) as f:
+        lines = f.readlines()
     filepaths_gridT = [line.strip() for line in lines]
 
     # Open the files and look at e3t and votemper
-    preprocess_gridT = lambda ds: ds[['e3t','votemper','vosaline','somxl010']]
-    DS = xr.open_mfdataset(filepaths_gridT,preprocess=preprocess_gridT) 
+    preprocess_gridT = lambda ds: ds[['e3t', 'votemper', 'vosaline', 'somxl010']]
+    DS = xr.open_mfdataset(filepaths_gridT, preprocess=preprocess_gridT)
 
     # Add horizontal cell dims
-    DS[['e1t','e2t']] = e1t,e2t 
+    DS[['e1t', 'e2t']] = e1t, e2t
 
     # Need to mask the shelves/sea floor, or else the "0" temperatures are counted
     # Easy way to do this is to mask anywhere with 0 salinities, since 0 temps are plausible
-    DS = DS.where(DS.vosaline>0)
+    DS = DS.where(DS.vosaline > 0)
 
     # Apply tmask (which I /think/ it for land etc.)
     DS = DS.where(tmask == 1)
@@ -85,6 +86,7 @@ def convective_resistance(run):
     
     print('Completed: Convective resistance calculations for ' + run)
 
+
 def MLD(run):
     """Creates and saves datasets of MLDs and convective 
     volumes in the Lab Sea."""
@@ -93,7 +95,8 @@ def MLD(run):
 
     # Masks (for land, bathymetry, etc. and horiz. grid dimensions)
     with xr.open_dataset('masks/ANHA4_mesh_mask.nc') as DS:
-        tmask = DS.tmask[0,:,:,:].rename({'z': 'deptht', 'y': 'y_grid_T', 'x': 'x_grid_T'})
+        tmask = DS.tmask[0, :, :, :].rename(
+            {'z': 'deptht', 'y': 'y_grid_T', 'x': 'x_grid_T'})
         e1t = DS.e1t[0,:,:].rename({'y': 'y_grid_T', 'x': 'x_grid_T'})
         e2t = DS.e2t[0,:,:].rename({'y': 'y_grid_T', 'x': 'x_grid_T'})
     mask = xr.open_dataarray('masks/mask_LS_3000.nc').astype(int)
@@ -155,32 +158,61 @@ def MLD(run):
 
     print('Completed: Stratification analyses for '+run)
 
-def MLD_Argo():
+
+def MLD_Argo(region="LabSea"):
     """A shortened copy of MLD().
-    Creates and saves datasets of Argo MLDs in the Lab Sea."""
+    Creates and saves datasets of Argo MLDs.
+    Uses the regridded Argo ANHA4 datasets produced
+    with Argo_gridding_ANHA4.py
+    Orginally just looked at Lab Sea data, but later expanded to NA.
+    region can be "LabSea" (default) or "NorthAtlantic.
+    If region == "LabSea", then save maps AND time series,
+    if region == "NorthAltantic", then just save maps."""
 
     print("Beginning: MLD calculations for Argo")
 
     # Masks (for land, bathymetry, etc. and horiz. grid dimensions)
     with xr.open_dataset('masks/ANHA4_mesh_mask.nc') as DS:
-        tmask = DS.tmask[0,:,:,:].isel(z=0)
-        e1t = DS.e1t[0,:,:]
-        e2t = DS.e2t[0,:,:]
-    mask = xr.open_dataarray('masks/mask_LS_3000.nc').astype(int).isel(deptht=0)
-    mask = mask.rename({'x_grid_T':'x','y_grid_T':'y'})
-
-    # In the Argo gridding script, I cut down the size as follows
-    e1t = e1t.where( (e1t.x>100) & (e1t.x<250) & (e1t.y>300) & (e1t.y<500), drop=True)
-    e2t = e2t.where( (e2t.x>100) & (e2t.x<250) & (e2t.y>300) & (e2t.y<500), drop=True)
-    mask = mask.where( (mask.x>100) & (mask.x<250) & (mask.y>300) & (mask.y<500), drop=True)
-    tmask = tmask.where( (tmask.x>100) & (tmask.x<250) & (tmask.y>300) & (tmask.y<500), drop=True)
+        tmask = DS.tmask[0, :, :, :].isel(z=0)
+        e1t = DS.e1t[0, :, :]
+        e2t = DS.e2t[0, :, :]
+    mask = xr.open_dataarray('masks/mask_LS_3000.nc')
+    mask = mask.astype(int).isel(deptht=0)
+    mask = mask.rename({'x_grid_T': 'x', 'y_grid_T': 'y'})
 
     # Open Argo data
-    Argo_fp = 'Argo_mld_ANHA4_LabSea.nc'
-    DS = xr.open_mfdataset(Argo_fp).set_coords(['nav_lat','nav_lon']).rename({'nav_lat':'nav_lat_grid_T','nav_lat':'nav_lon_grid_T'})
+    Argo_fp = 'Argo_mld_ANHA4_'+region+'.nc'
+    DS = xr.open_mfdataset(Argo_fp)
+    DS = DS.set_coords(['nav_lat', 'nav_lon'])
+    DS = DS.rename({'nav_lat': 'nav_lat_grid_T', 'nav_lon': 'nav_lon_grid_T'})
+
+    # In the Argo gridding script, I cut down the size as follows
+    if region == "LabSea":
+        # In this case, the Argo data is on an ANHA4 grid sized as follows:
+        e1t = e1t.where(
+            (e1t.x > 100) & (e1t.x < 250) & (e1t.y > 300) & (e1t.y < 500),
+            drop=True
+        )
+        e2t = e2t.where(
+            (e2t.x > 100) & (e2t.x < 250) & (e2t.y > 300) & (e2t.y < 500),
+            drop=True
+        )
+        mask = mask.where(
+            (mask.x > 100) & (mask.x < 250) & (mask.y > 300) & (mask.y < 500),
+            drop=True
+        )
+        tmask = tmask.where(
+            (tmask.x > 100) & (tmask.x < 250) &
+            (tmask.y > 300) & (tmask.y < 500),
+            drop=True
+        )
+    elif region != "NorthAtlantic":
+        # If we're looking at the NA, then we're using the full grid
+        print("region is illegal")
+        quit()
 
     # Add horizontal cell dims (drop depths now because they aren't needed)
-    DS[['e1t','e2t']] = e1t,e2t
+    DS[['e1t', 'e2t']] = e1t, e2t
 
     # Apply tmask (which I /think/ it for land etc.)
     DS = DS.where(tmask == 1)
@@ -188,31 +220,41 @@ def MLD_Argo():
     # Add region mask
     DS.coords['mask'] = mask
 
-    #== Calculations ==#
+    # == Calculations == #
 
-    # We are looking at several related ideas: 
+    # We are looking at several related ideas:
     #    (1) Full domain maps of yearly mean and max MLD,
-    #    (2) 10-yr time series of mean MLD in a masked region in the interior Lab Sea. 
+    #    (2) 10-yr time series of mean MLD in a masked region in the
+    #        interior Lab Sea.
 
     # (1) Starting with full domain maps of yearly mean and max MLD
-    Argo_MLD_maps = DS['da_mld'].groupby('date.year').max(dim=['date'],skipna=True).to_dataset().rename({'da_mld':'yearly_max'})
-    Argo_MLD_maps['yearly_mean'] = DS['da_mld'].groupby('date.year').mean(dim=['date'], skipna=True)
-    Argo_MLD_maps.to_netcdf('MLD_yearly_maps_full_domain_Argo.nc')
+    DS['da_mld'] = DS['da_mld'].where(DS['da_mld'] != 0)
+    Argo_MLD_maps = DS['da_mld'].groupby('date.year').max(
+        dim=['date'], skipna=True
+    ).to_dataset().rename({'da_mld': 'yearly_max'})
+    Argo_MLD_maps['yearly_mean'] = DS['da_mld'].groupby('date.year').mean(
+        dim=['date'], skipna=True
+    )
+    Argo_MLD_maps.to_netcdf('MLD_yearly_maps_'+region+'_domain_Argo.nc')
     print('Saved: Argo MLD yearly maps')
 
     # (2) Now mask and look at the time series of MLD
-    DS = DS.where(DS['mask'] == 1, drop=True)
-    areas = DS.e1t*DS.e2t
-    avgArea = areas.mean(dim=['y','x'])
-    weights = areas/avgArea
-    weights = weights.fillna(0)
-    MLD = DS['da_mld'].where(DS['da_mld']!=0)
-    MLD = MLD.weighted(weights)
-    avgMLD_region = MLD.mean(dim=['y','x'],skipna=True)
-    avgMLD_region.to_netcdf('ls3k_MLD_mean_Argo.nc')
-    print('Saved: MLD time series analyses for Argo')
+    if region == "LabSea":
+        # In this case we also want a time series    
+        DS = DS.where(DS['mask'] == 1, drop=True)
+        areas = DS.e1t*DS.e2t
+        avgArea = areas.mean(dim=['y', 'x'])
+        weights = areas/avgArea
+        weights = weights.fillna(0)
+        MLD = DS['da_mld']
+        MLD = MLD.where(MLD != 0)
+        MLD = MLD.weighted(weights)
+        avgMLD_region = MLD.mean(dim=['y', 'x'], skipna=True)
+        avgMLD_region.to_netcdf('ls3k_MLD_mean_Argo.nc')
+        print('Saved: MLD time series analyses for Argo')
 
     print('Completed: Stratification analyses for Argo')
+
 
 def MLD_LAB60():
     """Copy of MLD() but for LAB60.
@@ -300,4 +342,4 @@ if __name__ == '__main__':
         #convective_resistance(run)    
         #MLD(run)
     #MLD_LAB60()
-    MLD_Argo()
+    MLD_Argo('NorthAtlantic')

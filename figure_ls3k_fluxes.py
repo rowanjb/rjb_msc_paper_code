@@ -9,13 +9,11 @@
 
 import xarray as xr
 import numpy as np
-import pandas as pd
 import matplotlib.pyplot as plt
-from functools import reduce
+import pyproj
 import cartopy.crs as ccrs
 import cartopy.feature as feature
 from cftime import DatetimeNoLeap
-from datetime import datetime
 import matplotlib as mpl
 import matplotlib.ticker as mticker
 
@@ -32,7 +30,7 @@ def create_temporary_files():
     lc_end_id = 230
 
     # Set the definition of surface and depth
-    d = 300  # i.e., above 300 is surface, under 300 is depth
+    d = 400  # i.e., above 300 is surface, under 300 is depth
 
     # For each run save things to plot later
     start_date = DatetimeNoLeap(2007, 12, 1)
@@ -748,6 +746,8 @@ def ls3k_plot_barh_diffs():
 def ls3k_plot_volume_fluxes():
     """Creates figure of fluxes for paper."""
 
+    print("Beginning: volume flux supplemental figure")
+
     areas = xr.open_dataset('masks/ls3k_flux_face_hzdims.nc')['projected_area']
     EPM151 = xr.open_dataset('ls3k_fluxes_plotting_EPM151.nc')
     EPM152 = xr.open_dataset('ls3k_fluxes_plotting_EPM152.nc')
@@ -758,155 +758,62 @@ def ls3k_plot_volume_fluxes():
 
     # Init the figure
     cm = 1/2.54  # Inches to centimeters
-    layout = [['ax1', 'ax1', 'ax1', '.'],
-              ['ax1', 'ax1', 'ax1', '.'],
-              ['.', '.', '.', '.'],
-              ['ax2', 'ax2', 'ax2', '.'],
-              ['ax2', 'ax2', 'ax2', '.'],
-              ['.', '.', '.', '.'],
-              ['ax3', 'ax3', 'ax3', '.'],
-              ['ax3', 'ax3', 'ax3', '.']]
-    # westLon, eastLon = -65, -40
-    northLat, southLat = 67, 51
-    projection = ccrs.AlbersEqualArea(
-        central_longitude=-55, 
-        central_latitude=50,
-        standard_parallels=(southLat, northLat)
-    )
+    layout = [['ax1', 'ax1', 'ax1', 'ax2', 'ax2', 'ax2'],
+              ['.', 'ax3', 'ax3', 'ax3', 'ax3', '.'],
+              ['.', 'ax4', 'ax4', 'ax4', 'ax4', '.'],
+              ['.', 'ax5', 'ax5', 'ax5', 'ax5', '.'],
+              ['.', 'ax6', 'ax6', 'ax6', 'ax6', '.'],
+              ['ax7', 'ax7', 'ax7', 'ax8', 'ax8', 'ax8']]
     fig, axd = plt.subplot_mosaic(layout, figsize=(19*cm, 19*cm))
-    ax1, ax2, ax3 = axd['ax1'], axd['ax2'], axd['ax3']
+    ax1, ax2, ax3, ax4 = axd['ax1'], axd['ax2'], axd['ax3'], axd['ax4']
+    ax5, ax6, ax7, ax8 = axd['ax5'], axd['ax6'], axd['ax7'], axd['ax8']
 
-    # Ax 1: Time series
+    ## Calculating the distance between cells?
+    #geod = pyproj.Geod(ellps='sphere')
+    #_, _, dist = geod.inv(
+    #    vertices_lon[0],
+    #    vertices_lat[0],
+    #    vertices_lon[1],
+    #    vertices_lat[1])
+    
+    # Ax1 : Lab Current to interior surface volume flux
+    print(EPM151)
 
-    # For controlling linestyle
-    c1, c2, c3, c4, c5, c6 = plt.cm.viridis([0, 0.5, 0.8, 0, 0.5, 0.8])
-    runs = [EPM157, EPM158, EPM151, EPM152, EPM155, EPM156]
-    runs_id = ['EPM157', 'EPM158', 'EPM151', 'EPM152', 'EPM155', 'EPM156']
-    colours = plt.cm.viridis([0, 0, 0.5, 0.5, 0.8, 0.8])
-    linestyles = ['-', '--', '-', '--', '-', '--']
-    # hatches = ["","///","","///","","///"]
+    # Adding the titles
+    plt.suptitle(r"Boundary $\rightarrow$ interior volume fluxes")
+    ax1.set_title(r'Labrador Current, 0-400 m', fontsize=12)
+    ax2.set_title(r'West Greenland Current, 0-400 m', fontsize=12)
+    ax3.set_title(r'Anomaly of 10-yr mean due to tides (CGRF)', fontsize=12)
+    ax4.set_title(r'Anomaly of 10-yr mean due to MLEs (CGRF)', fontsize=12)
+    ax5.set_title(r'Anomaly of 10-yr mean due to tides (ERA-I)', fontsize=12)
+    ax6.set_title(r'Anomaly of 10-yr mean due to MLE (ERA-I)', fontsize=12)
+    ax7.set_title(r'Labrador Current, 400 m-bottom', fontsize=12)
+    ax8.set_title(r'West Greenland Current, 400 m-bottom', fontsize=12)
 
-    # Function for opening and processing the convective resistance
-    # data and storing it in a Pandas dataframe
-    def open_processed_data_vol_flux(run, run_id):
-        da = run['vol_flux_irminger_srfc'] + run['vol_flux_irminger_depth']
-        df = da.to_dataframe(run_id)
-        df = df.reset_index()
-        df = df.drop('time_centered', axis=1)
-        df['time_counter'] = df['time_counter'].astype(str)
-        df['time_counter'] = df['time_counter'].map(
-            lambda date_string: datetime.strptime(
-                date_string, '%Y-%m-%d %H:%M:%S'
+    # Annotating the letters
+    letters = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h']
+    axes = [ax1, ax2, ax3, ax4, ax5, ax6, ax7, ax8]
+    for n, ax in enumerate(axes):
+        letter = letters[n]
+        ax.text(
+            0.2,
+            0.9,
+            letter,
+            transform=ax.transAxes,
+            fontsize=14,
+            fontweight='bold',
+            va='top',
+            ha='right', 
+            bbox=dict(
+                facecolor='white',
+                edgecolor='black',
+                boxstyle='circle,pad=0.1'
             )
         )
-        df['time_counter'] = pd.to_datetime(df['time_counter'])
-        return df
 
-    # Function for merging dataframes from each run
-    def merge_dfs(dfs):
-        merged = reduce(lambda left, right: pd.merge(
-            left, right, on=['time_counter'], how='inner'), dfs)
-        return merged
-
-    # Opening the convective resistance data
-    df = []
-    for n, run in enumerate(runs):
-        df_temp = open_processed_data_vol_flux(run, runs_id[n])
-        df.append(df_temp)
-    df = merge_dfs(df)
-    df = df.set_index('time_counter')
-    # Defining our period of interest; note how the years are
-    # defined by the winter (i.e., including previous December)
-    df = df.loc['2007-12-01':'2017-11-30']
-    df = df.where(df != 0)  # Masking any spurious zeros
-    df = df/1000000  # Handling the units (J -> PJ)
-
-    # Plotting the convective resistance time series
-    df = df.groupby(df.index.shift(1, freq='m').shift(1, freq='d').year).mean()
-    df.plot(
-        ax=ax1,
-        xticks=[2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017],
-        color=colours,
-        style=linestyles,
-        legend=False,
-        zorder=100
-    )
-    ax1.set_xlabel(None)
-    ax1.xaxis.grid(True, linewidth=0.25)
-    # means = df.mean(axis=0)
-    ax1.xaxis.set_tick_params(labelsize=9)
-    ax1.yaxis.set_tick_params(labelsize=9)
-    ax1.set_ylabel(r'Volume flux ($Sv$)', fontdict={'fontsize': 12})
-    ax1.set_title(
-        'Volume flux\nWest Greenland Curren → interior Labrador Sea',
-        fontdict={'fontsize': 12})
-    ax1.yaxis.grid(True, linewidth=0.25, zorder=-10)
-
-    # ax2
-    da = (
-        EPM157['vol_flux_section_mean']/areas.values
-        + EPM151['vol_flux_section_mean']/areas.values
-        + EPM155['vol_flux_section_mean']/areas.values
-    )
-    da.plot.pcolormesh(
-        x='ids',
-        y='deptht',
-        rasterized=True,
-        ax=ax2,
-        add_colorbar=False,
-        cmap='BrBG'
-    )
-    ax2.vlines([66, 121, 181, 231], 0, 3000, 'k')
-    ax2.set_ylim(0, 3000)
-    ax2.invert_yaxis()
-    ax2.set_ylabel("Depth ($m$)", fontdict={'fontsize': 12})
-    ax2.set_title(
-        'Volume flux into the interior Labrador Sea\n'
-        'Mean of CGRF simulations',
-        fontdict={'fontsize': 12}
-    )
-    ax2.set_xlabel("Longitude")
-    ax2.set_xticklabels(EPM151['nav_lon_grid_T'].values)
-    ax2.text(0.28, 0.075, 'WGC', transform=ax2.transAxes, fontsize=12)
-    ax2.text(
-        0.73,
-        0.075,
-        'Labrador\nCurrent',
-        transform=ax2.transAxes,
-        fontsize=12
-    )
-
-    # ax3
-    da = (
-        EPM158['vol_flux_section_mean']/areas.values
-        + EPM152['vol_flux_section_mean']/areas.values
-        + EPM156['vol_flux_section_mean']/areas.values
-    )
-    da.plot.pcolormesh(
-        x='ids',
-        y='deptht',
-        rasterized=True,
-        ax=ax3,
-        add_colorbar=False,
-        cmap='BrBG'
-    )
-    ax3.vlines([66, 121, 181, 231], 0, 3000, 'k')
-    ax3.set_ylim(0, 3000)
-    ax3.invert_yaxis()
-    ax3.set_ylabel("Depth ($m$)", fontdict={'fontsize': 12})
-    ax3.set_title(
-        'Volume flux into the interior Labrador Sea\n'
-        'Mean of ERA-I simulations',
-        fontdict={'fontsize': 12}
-    )
-
-    ax3.set_xlabel("Longitude")
-    ax3.text(0.28, 0.075, 'WGC', transform=ax3.transAxes, fontsize=12)
-    ax3.text(0.73, 0.075, 'Labrador\nCurrent',
-             transform=ax3.transAxes, fontsize=12)
-    ax3.set_xticklabels(EPM151['nav_lon_grid_T'].values)
-
-    plt.savefig('figure_ls3k_fluxes_time_series.svg', dpi=600)
+    name = 'figure_ls3k_fluxes_time_series.svg'
+    plt.savefig(name, dpi=600)
+    print("Saved: "+name)
 
 
 if __name__ == "__main__":

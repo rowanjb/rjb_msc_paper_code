@@ -30,6 +30,13 @@ def plot_MLDs_supplemental_figure():
     ax1, ax2, ax3 = axd['ax1'], axd['ax2'], axd['ax3']
     ax4, ax5, ax6 = axd['ax4'], axd['ax5'], axd['ax6']
 
+    def calculate_area_weighted_mean(da):
+        mesh = xr.open_dataset('masks/ANHA4_mesh_mask.nc')
+        areas = mesh['e1t']*mesh['e2t']
+        weights = areas/areas.mean()
+        weights = weights.fillna(0)
+        return da.weighted(weights).mean(skipna=True).values
+
     # Function for plotting MLD anomalies
     def plot_anom_map(da, argo, ax, run, letter):
         land_50m = feature.NaturalEarthFeature(
@@ -61,7 +68,7 @@ def plot_MLDs_supplemental_figure():
         gl.ylabel_style = {'size': 9}
         da = da.where(argo)  # Mask the model data only where we have Argo
         da = da - argo  # Calculate the differences
-        mean_diff = da.mean().values  # Will print onto the maps
+        mean_diff = calculate_area_weighted_mean(da)
         p = ax.pcolormesh(
             da.nav_lon_grid_T,
             da.nav_lat_grid_T,

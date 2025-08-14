@@ -206,8 +206,7 @@ def MLD_Argo():
     avgArea = areas.mean(dim=['y','x'])
     weights = areas/avgArea
     weights = weights.fillna(0)
-    MLD = DS['da_mld']
-    MLD = MLD.where(MLD!=0)
+    MLD = DS['da_mld'].where(DS['da_mld']!=0)
     MLD = MLD.weighted(weights)
     avgMLD_region = MLD.mean(dim=['y','x'],skipna=True)
     avgMLD_region.to_netcdf('ls3k_MLD_mean_Argo.nc')

@@ -301,7 +301,7 @@ def identify_projected_dims():
     face_nav_lat = np.zeros( (num_cells) )
     for n in np.arange(num_cells): # For each cell in the boundary 
         row, col, direction = rows[n], cols[n], directions[n]
-        heights[n,:] = ds_mesh['e1t'].isel(y=row,x=col).values
+        heights[n,:] = ds_mesh['e3t'].isel(y=row,x=col).values
         face_nav_lon[n] = ds_mesh['face_nav_lon'].isel(y=row,x=col).values # Save the coordinates
         face_nav_lat[n] = ds_mesh['face_nav_lat'].isel(y=row,x=col).values
         if direction=='southward' or direction=='northward': # If the flux is north-south... 

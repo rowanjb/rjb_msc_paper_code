@@ -317,7 +317,7 @@ def identify_projected_dims():
     ds_final = xr.Dataset(
         {
             "horiz_dim": (("ids","z"),dims),
-            "e1t": (("ids","z"),heights),
+            "e3t": (("ids","z"),heights),
             "projected_area": (("ids","z"),areas),
         },
         coords={

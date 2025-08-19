@@ -301,15 +301,16 @@ def identify_projected_dims():
     face_nav_lat = np.zeros( (num_cells) )
     for n in np.arange(num_cells): # For each cell in the boundary 
         row, col, direction = rows[n], cols[n], directions[n]
-        heights[n,:] = ds_mesh['e3t'].isel(y=row,x=col).values
         face_nav_lon[n] = ds_mesh['face_nav_lon'].isel(y=row,x=col).values # Save the coordinates
         face_nav_lat[n] = ds_mesh['face_nav_lat'].isel(y=row,x=col).values
         if direction=='southward' or direction=='northward': # If the flux is north-south... 
             dims[n,:] = ds_mesh['V_face_dims'].isel(y=row,x=col).values # Then we want a v dimension
             areas[n,:] = ds_mesh['V_face_areas'].isel(y=row,x=col).values
+            heights[n,:] = ds_mesh['e3v'].isel(y=row,x=col).values
         elif direction=='eastward' or direction=='westward': # If the flux is east-west...
             dims[n,:] = ds_mesh['U_face_dims'].isel(y=row,x=col).values # Then we want a u dimension
             areas[n,:] = ds_mesh['U_face_areas'].isel(y=row,x=col).values
+            heights[n,:] = ds_mesh['e3u'].isel(y=row,x=col).values
         else:
             print('Broken loop with error code 6')
             quit()
@@ -317,7 +318,7 @@ def identify_projected_dims():
     ds_final = xr.Dataset(
         {
             "horiz_dim": (("ids","z"),dims),
-            "e3t": (("ids","z"),heights),
+            "e3": (("ids","z"),heights),
             "projected_area": (("ids","z"),areas),
         },
         coords={

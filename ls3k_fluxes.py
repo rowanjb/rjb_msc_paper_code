@@ -324,7 +324,7 @@ def identify_projected_dims():
             "nav_lat": (("ids"),face_nav_lat),
         },
         attrs=dict(description="Contains the horizontal dimension of all faces that have non-zero flux into the interior of masked area."
-                               "Also contains the area of the face based on the invariant mesh e1t dimension."
+                               "Also contains the area of the face based on the invariant mesh e3 dimensions (which btw accounts for the sea floor!)."
                                "(Real cell areas change with changing SSH.)"
                                "If flux is east-west (U velocity) then the horizontal dimension is e2u."
                                "If flux is north-south (V velocity) then the horizontal dimension is e1v"),
@@ -444,7 +444,7 @@ if __name__=="__main__":
     #identify_flux_faces()
     #test_plot_ls3k_flux_boundary()
     #linearise_flux_face_ids()
-    test_plot_ls3k_flux_boundary_faces()
+    #test_plot_ls3k_flux_boundary_faces()
     #identify_projected_dims()
     #for run in ['EPM151','EPM152','EPM155','EPM156','EPM157','EPM158']:
     #    calculate_fluxes(run)

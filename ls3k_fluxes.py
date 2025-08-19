@@ -296,10 +296,12 @@ def identify_projected_dims():
     directions = ds['directions'].values
     dims = np.zeros( (num_cells, num_depths) )
     areas = np.zeros( (num_cells, num_depths) )
+    heights = np.zeros( (num_cells, num_depths) )
     face_nav_lon = np.zeros( (num_cells) )
     face_nav_lat = np.zeros( (num_cells) )
     for n in np.arange(num_cells): # For each cell in the boundary 
         row, col, direction = rows[n], cols[n], directions[n]
+        heights[n,:] = ds_mesh['e1t'].isel(y=row,x=col).values
         face_nav_lon[n] = ds_mesh['face_nav_lon'].isel(y=row,x=col).values # Save the coordinates
         face_nav_lat[n] = ds_mesh['face_nav_lat'].isel(y=row,x=col).values
         if direction=='southward' or direction=='northward': # If the flux is north-south... 
@@ -315,6 +317,7 @@ def identify_projected_dims():
     ds_final = xr.Dataset(
         {
             "horiz_dim": (("ids","z"),dims),
+            "e1t": (("ids","z"),heights),
             "projected_area": (("ids","z"),areas),
         },
         coords={
@@ -445,6 +448,6 @@ if __name__=="__main__":
     #test_plot_ls3k_flux_boundary()
     #linearise_flux_face_ids()
     #test_plot_ls3k_flux_boundary_faces()
-    #identify_projected_dims()
+    identify_projected_dims()
     #for run in ['EPM151','EPM152','EPM155','EPM156','EPM157','EPM158']:
     #    calculate_fluxes(run)

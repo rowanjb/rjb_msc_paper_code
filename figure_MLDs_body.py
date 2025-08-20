@@ -156,7 +156,7 @@ def plot_MLDs_body_figure():
     )
     ax1.set_xticks(
         [0.5, 2.5, 4.5, 6, 7],
-        ['Control', 'Tides', 'Tides\nSMLEs', '1/60°\nmodel', 'Argo'],
+        ['Control', 'Tides', 'Tides\nMLEs', '1/60°\nmodel', 'Argo'],
         rotation=0,
         fontsize=12
     )
@@ -176,7 +176,7 @@ def plot_MLDs_body_figure():
             boxstyle='circle,pad=0.1'
         )
     )
-    ax1.yaxis.grid(True, linewidth=0.1, alpha=0.25, zorder=0)
+    ax1.yaxis.grid(True, linewidth=1, alpha=0.75, zorder=0)
 
     # Handling the legend
     labels = ['CGRF', 'ERA-I', 'Other']
@@ -210,6 +210,8 @@ def plot_MLDs_body_figure():
         padding=3,
         **kwargs
     )
+    for spine in ax1.spines.values():
+        spine.set_zorder(120)
 
     # == Plotting maps == #
     def plt_mini_map(run, title, ax, letter):

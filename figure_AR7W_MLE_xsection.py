@@ -74,7 +74,7 @@ def ANHA4_sections():
         ax.set_xticks([0, 240, 480, 720, 958])
         ax.set_ylim(0, 1000)
         ax.invert_yaxis()
-        ax.grid(visible=True, axis='both', color='grey', lw=0.5)
+        ax.grid(visible=True, axis='both', color='grey', lw=1, alpha=0.75)
 
         run_dict = {"EPM155": "CGRF-\nTS", "EPM156": "ERAI-\nTS"}
         ax.text(

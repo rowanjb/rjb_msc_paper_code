@@ -16,6 +16,7 @@ import pyproj
 import cartopy.crs as ccrs
 import cartopy.feature as feature
 from cftime import DatetimeNoLeap
+from datetime import timedelta as td
 import matplotlib as mpl
 import matplotlib.ticker as mticker
 import pyproj
@@ -256,9 +257,9 @@ def ls3k_plot_barh_diffs():
     # Objects to loop over
     bar_labels = (  # Will finish in Inkscape
         "Tides",  # CGRF
-        "MLE",  # CGRF
+        "MLEs",  # CGRF
         "Tides",  # ERA-I
-        "MLE"  # ERA-I
+        "MLEs"  # ERA-I
     )
     runs = [  # We want to look at:
         (EPM151, EPM157),  # tides minus control (CGRF)
@@ -350,7 +351,8 @@ def ls3k_plot_barh_diffs():
             left=bottom[2:],
             edgecolor='w',
             color=colours[region],
-            hatch=hatches[region]
+            hatch=hatches[region],
+            zorder=100
         )
         a1b.barh(
             bar_labels[:2],
@@ -360,7 +362,8 @@ def ls3k_plot_barh_diffs():
             left=bottom[:2],
             edgecolor='w',
             color=colours[region],
-            hatch=hatches[region]
+            hatch=hatches[region],
+            zorder=100
         )
     ax1.set_title(
         "Differences in 10-yr mean volume fluxes ($Sv$)",
@@ -434,7 +437,8 @@ def ls3k_plot_barh_diffs():
             left=bottom[2:],
             color=colours[region],
             edgecolor='w',
-            hatch=hatches[region]
+            hatch=hatches[region],
+            zorder=100
         )
         a2b.barh(
             bar_labels[:2],
@@ -444,7 +448,8 @@ def ls3k_plot_barh_diffs():
             left=bottom[:2],
             color=colours[region],
             edgecolor='w',
-            hatch=hatches[region]
+            hatch=hatches[region],
+            zorder=100
         )
     ax2.set_title(
         "Differences in 10-yr mean salt flux ($kt$ $s^{-1}$)",
@@ -517,7 +522,8 @@ def ls3k_plot_barh_diffs():
             left=bottom[2:],
             color=colours[region],
             edgecolor='w',
-            hatch=hatches[region]
+            hatch=hatches[region],
+            zorder=100
         )
         a3b.barh(
             bar_labels[:2],
@@ -527,7 +533,8 @@ def ls3k_plot_barh_diffs():
             left=bottom[:2],
             color=colours[region],
             edgecolor='w',
-            hatch=hatches[region]
+            hatch=hatches[region],
+            zorder=100
         )
     ax3.set_title(
         "Differences in 10-yr mean heat flux ($TW$)",
@@ -642,12 +649,12 @@ def ls3k_plot_barh_diffs():
     # == Final touches and legends ==#
 
     # Adding some nice grid lines
-    ax1.xaxis.grid(True, linewidth=0.1, alpha=0.25)
-    ax2.xaxis.grid(True, linewidth=0.1, alpha=0.25)
-    ax3.xaxis.grid(True, linewidth=0.1, alpha=0.25)
-    a1b.xaxis.grid(True, linewidth=0.1, alpha=0.25)
-    a2b.xaxis.grid(True, linewidth=0.1, alpha=0.25)
-    a3b.xaxis.grid(True, linewidth=0.1, alpha=0.25)
+    ax1.xaxis.grid(True, linewidth=1, alpha=0.75, zorder=-10)
+    ax2.xaxis.grid(True, linewidth=1, alpha=0.75, zorder=-10)
+    ax3.xaxis.grid(True, linewidth=1, alpha=0.75, zorder=-10)
+    a1b.xaxis.grid(True, linewidth=1, alpha=0.75, zorder=-10)
+    a2b.xaxis.grid(True, linewidth=1, alpha=0.75, zorder=-10)
+    a3b.xaxis.grid(True, linewidth=1, alpha=0.75, zorder=-10)
 
     # Generating some final text to manipulate in inkscape
     ax4.text(
@@ -797,7 +804,7 @@ def ls3k_plot_volume_fluxes():
             lats[n+1]
         )
         distances.append(dist/1000)
-    
+
     # Plotting the time series
     runs = [EPM157, EPM158, EPM151, EPM152, EPM155, EPM156]
     labels = ['CGRF-C', 'ERAI-C', 'CGRF-T', 'ERAI-T', 'CGRF-TS', 'ERAI-TS']
@@ -808,23 +815,25 @@ def ls3k_plot_volume_fluxes():
     axes = [ax1, ax2, ax7, ax8]
     vars = ['vol_flux_lc_srfc', 'vol_flux_irminger_srfc',
             'vol_flux_lc_depth', 'vol_flux_irminger_depth']
-    ylims = [(0, 4), (-4.5, 5), (0,12), (-7, 13)]
+    ylims = [(0, 4), (-4.5, 5), (0, 12), (-7, 13)]
     for nax, ax in enumerate(axes):
         lines = []
         for nrun, run in enumerate(runs):
-            da = run[vars[nax]].resample(
-                time_counter='YE',origin='start_day').mean().sel(
-                    time_counter=slice('2007-12-31','2017-12-31')
+            da = run[vars[nax]].drop_vars('time_centered').resample(
+                time_counter='YS-DEC').mean().sel(
+                    time_counter=slice('2007-12-01', '2017-11-30')
                 )/1e6
+            da['time_counter'] = da['time_counter']+td(days=31)
             p = da.plot(
                 ax=ax,
                 c=colours[nrun],
                 linestyle=linestyles[nrun],
-                label = labels[nrun]
+                label=labels[nrun]
             )
             lines = lines + p
         ax.tick_params(axis='both', labelsize=12)
-        ax.grid(visible=True, axis='both', which='both', color='grey', lw=0.5)
+        ax.grid(visible=True, axis='both', which='both',
+                color='grey', lw=1, alpha=0.75, zorder=-10)
         ax.set_ylim(ylims[nax])
         ax.set_ylabel("")        
         ax.set_xlabel("")
@@ -851,12 +860,12 @@ def ls3k_plot_volume_fluxes():
         transform=ax1.transAxes
     )
     ax2.legend(
-        handles = [lines[0], lines[2], lines[4], lines[1], lines[3], lines[5]],
+        handles=[lines[0], lines[2], lines[4], lines[1], lines[3], lines[5]],
         loc='upper center',
-        bbox_to_anchor=(1.4, 0.6),
+        bbox_to_anchor=(1.4, 0.45),
         ncol=1,
         shadow=True,
-        fontsize=12
+        fontsize=9
     )
 
     # Ax3, 4, 5, 6 : Sections
@@ -871,7 +880,7 @@ def ls3k_plot_volume_fluxes():
         da['cell_bottoms'] = areas['e3'].cumsum(dim='deptht')/1000
         da['dists'] = areas['horiz_dim'].cumsum(
             dim='ids').isel(deptht=0).drop_vars('deptht')/1000
-        da = da.where(da!=0)  # Mask bathy
+        da = da.where(da != 0)  # Mask bathy
         # Now, to plot the data we cannot simply use pcolormesh, because
         # the bottom cells have irregular thicknesses. I will therefore use
         # PolyCollection, which (full disclosure) I only learned about 
@@ -902,7 +911,7 @@ def ls3k_plot_volume_fluxes():
             array=np.array(data),
             cmap=cmap,
             edgecolors='none',
-            norm = colors.Normalize(vmin=-0.075, vmax=0.075),
+            norm=colors.Normalize(vmin=-0.075, vmax=0.075),
             rasterized=True
         )
         p = ax.add_collection(pc)
@@ -919,7 +928,7 @@ def ls3k_plot_volume_fluxes():
         ax.add_patch(
             plt.Rectangle(
                 (da['dists'].isel(ids=65), 0.445),
-                da['dists'].isel(ids=120)-da['dists'].isel(ids=65), 3.6-0.045,
+                da['dists'].isel(ids=120)-da['dists'].isel(ids=65), 3.7-0.045,
                 ec=c_box[2], fc="none", clip_on=False, zorder=10, lw=1.5,
                 ls=ls_box[2]
             )
@@ -935,19 +944,20 @@ def ls3k_plot_volume_fluxes():
         ax.add_patch(
             plt.Rectangle(
                 (da['dists'].isel(ids=180), 0.445),
-                da['dists'].isel(ids=230)-da['dists'].isel(ids=180), 3.6-0.045,
+                da['dists'].isel(ids=230)-da['dists'].isel(ids=180), 3.7-0.045,
                 ec=c_box[3], fc="none", clip_on=False, zorder=10, lw=1.5,
                 ls=ls_box[3]
             )
         )
-        ax.grid(visible=True, axis='both', which='both', color='grey', lw=0.5)
+        ax.grid(visible=True, axis='both', which='both',
+                color='grey', lw=1, alpha=0.75, zorder=-10)
         ax.tick_params(axis='both', labelsize=12)
         if ax in [ax3, ax4, ax5]:
             ax.set_xticklabels([])
         ax.invert_yaxis()
         ax.set_ylabel("")
         ax.set_xlabel("")
-        ax.set_yticks([0,1.5,3])
+        ax.set_yticks([0, 1.5, 3])
     ax6.text(
         0.5,
         -0.6,
@@ -966,12 +976,12 @@ def ls3k_plot_volume_fluxes():
         fontsize=12,
         transform=ax4.transAxes
     )
-    cbar_ax = fig.add_axes([0.85, 0.1, 0.02, 0.35])
+    cbar_ax = fig.add_axes([0.85, 0.105, 0.02, 0.35])
     cb = fig.colorbar(p, cax=cbar_ax)
     cb.ax.text(
         1.6,
         1.07,
-        "Volume flux\n($m^3$ $s^{-1}$)",
+        "Volume flux\nanomaly\n($m^3$ $s^{-1}$)",
         ha='center',
         fontsize=12,
         transform=cb.ax.transAxes
@@ -989,8 +999,8 @@ def ls3k_plot_volume_fluxes():
         'WGC, 400 m-bottom'
     ]
     axes = [ax1, ax2, ax3, ax4, ax5, ax6, ax7, ax8]
-    xdist = [0.965, 0.965, 0.99, 0.99, 0.99, 0.99, 0.965, 0.965]
-    ydist = [0.95, 0.95, 0.95, 0.95, 0.95, 0.95, 0.95, 0.95]
+    xdist = [0.965, 0.965, 0.09, 0.09, 0.09, 0.09, 0.965, 0.965]
+    ydist = [0.95, 0.95, 0.6, 0.6, 0.6, 0.6, 0.95, 0.95]
     for n, ax in enumerate(axes):
         ax.text(
             xdist[n],
@@ -1018,7 +1028,7 @@ def ls3k_plot_volume_fluxes():
             fontsize=14,
             fontweight='bold',
             va='top',
-            ha='right', 
+            ha='right',
             bbox=dict(
                 facecolor='white',
                 edgecolor='black',

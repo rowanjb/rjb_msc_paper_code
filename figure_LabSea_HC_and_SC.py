@@ -1,15 +1,18 @@
-# Rowan Brown, 13 Aug 2025
+# Makes plot of Lab Sea heat and salt content
+# Rowan Brown
+# August 2025
 
-import numpy as np
+import matplotlib.pyplot as plt
 import pandas as pd
 import xarray as xr
 from functools import reduce
-import matplotlib.pyplot as plt
 from datetime import datetime
 
 
-def plot_stratification_figure():
-    """Make a plot of convective resistance and volume."""
+def contents_figure():
+    """Creates plot of heat and salt content in the Lab Sea."""
+
+    print("Beginning: Lab Sea heat and salt content figure")
 
     # Init the figure
     cm = 1/2.54  # Inches to centimeters
@@ -26,58 +29,44 @@ def plot_stratification_figure():
     linestyles = ['-', '--', '-', '--', '-', '--']
     hatches = ["", "///", "", "///", "", "///"]
 
-    # Function for opening and processing the data (conv vol and conv R)
-    # and storing it in a Pandas dataframe
+    # Function for opening and processing the data and storing in a pd df
     def open_processed_data(run, fp):
-        ds = xr.open_dataarray(fp)
-        try: # Some of the data has deptht as a coord...
-            df = ds.drop_vars(['time_centered', 'deptht']).to_dataframe(run)
-        except: # ...and some doesn't
-            df = ds.drop_vars('time_centered').to_dataframe(run)
+        df = xr.open_dataarray(fp).drop_vars(
+            ['time_centered']).to_dataframe(run)
         df = df.reset_index()
         df['time_counter'] = df['time_counter'].astype(str)
         df['time_counter'] = df['time_counter'].map(
             lambda date_string: datetime.strptime(
-                date_string,
-                '%Y-%m-%d %H:%M:%S'
-            )
-        )
+                date_string, '%Y-%m-%d %H:%M:%S'))
         df['time_counter'] = pd.to_datetime(df['time_counter'])
+        df = df.set_index('time_counter')
+        df = df.loc['2007-12-01':'2017-11-30']
         return df
 
     # Function for merging dataframes from each run
     def merge_dfs(dfs):
         merged = reduce(
             lambda left, right: pd.merge(
-                left,
-                right,
-                on=['time_counter'],
-                how='inner'
-            ),
-            dfs
-        )
+                left, right, on=['time_counter'], how='inner'), dfs)
         return merged
 
-    # Opening the convective resistance data
+    # Opening the salt content data
     df = []
     for run in runs:
-        fp = 'ls3k_convective_resistance_'+run+'.nc'
+        fp = 'ls3k_salt_content_' + run + '.nc'
         df_temp = open_processed_data(run, fp)
         df.append(df_temp)
     df = merge_dfs(df)
-    df = df.set_index('time_counter')
-    # Defining our period of interest and taking winter means
-    # Note the years are defined by the winter (including previous December)
-    df = df.loc['2007-12-01':'2017-11-30']
-    df = df.loc[(df.index.month > 11) | (df.index.month < 5)]
-    df = df.where(df != 0)  # Masking any spurious zeros
-    df = df/1e15  # Handling the units (J -> PJ)
+    df = df.where(df != 0)  # Masking a zero somewher
+    df = df/1e18  # Grams to tonnes
 
-    # Plotting the convective resistance time series
-    df = df.groupby(df.index.shift(1, freq='m').shift(1, freq='d').year).mean()
+    # Plotting the salt content time series
+    years = [2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017]
+    df = df.groupby(df.index.shift(
+        1, freq='ME').shift(1, freq='d').year).mean()
     df.plot(
         ax=ax1,
-        xticks=[2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017],
+        xticks=years,
         color=colours,
         style=linestyles,
         legend=False,
@@ -85,18 +74,13 @@ def plot_stratification_figure():
     )
     ax1.set_xlabel(None)
     ax1.xaxis.grid(True, linewidth=1, alpha=0.75)
-    means = df.mean(axis=0)
+    ax1.yaxis.grid(True, linewidth=1, alpha=0.75)
     ax1.xaxis.set_tick_params(labelsize=9)
     ax1.yaxis.set_tick_params(labelsize=9)
-    ax1.set_ylabel(
-        'Convective\nresistance ($PJ$)',
-        fontdict={'fontsize': 12}
-    )
-    ax1.set_title(
-        r'Yearly winter mean',
-        fontdict={'fontsize': 12}
-    )
-    ax1.set_ylim(300, 1900)
+    ax1.set_ylabel('Salt content\n'+r'($\times 10^{12}$ $tonnes$)',
+                   fontdict={'fontsize': 12})
+    ax1.set_title('')
+    ax1.set_ylim(7.422e1, 7.433275e1)
     ax1.text(
         0.08,
         0.95,
@@ -112,9 +96,13 @@ def plot_stratification_figure():
             boxstyle='circle,pad=0.1'
         )
     )
-    ax1.yaxis.grid(True, linewidth=1, zorder=-10, alpha=0.75)
+    ax1.set_title(
+        r'Yearly mean',
+        fontdict={'fontsize': 12}
+    )
 
-    # Plotting the convective resistance bar chart
+    # Plotting the freshwater content bar chart
+    means = df.mean(axis=0)
     means.plot.bar(
         ax=ax2,
         xlabel='',
@@ -129,29 +117,32 @@ def plot_stratification_figure():
     )
     ax2.set_xticks(
         [0.5, 2.5, 4.5],
-        ['Control', 'Tides', 'Tides\nSMLEs'],
-        rotation=0,
-        fontsize=9
-    )
+        ['Control', 'Tides', 'Tides\nMLEs'], rotation=0, fontsize=9)
     ax2.yaxis.set_tick_params(labelsize=9)
     ax2.set_title(
         r'10-yr winter mean',
         fontdict={'fontsize': 12}
     )
-    ax2.set_ylim(300, 1900)
+    ax2.yaxis.grid(True, linewidth=1, alpha=0.75, zorder=-10)
+    ax2.set_ylim(7.422e1, 7.433275e1)
     labls = [
-        means['EPM157'],
-        means['EPM158'],
-        means['EPM151'],
-        means['EPM152'],
-        means['EPM155'],
-        means['EPM156']
+        means[runs[0]],
+        means[runs[1]],
+        means[runs[2]],
+        means[runs[3]],
+        means[runs[4]],
+        means[runs[5]]
     ]
-    kwargs = {'rotation': 90, 'fontsize': 9}
+    kwargs = {'rotation': 90, 'fontsize': 9,
+              'bbox': dict(facecolor='white',
+                           edgecolor='none',
+                           alpha=0.75,
+                           boxstyle='square,pad=0.1')}
     ax2.bar_label(
         ax2.containers[0],
         labels=[str(i)[:6] for i in labls],
-        padding=3,
+        padding=-35,
+        zorder=120,
         **kwargs
     )
     ax2.text(
@@ -166,44 +157,41 @@ def plot_stratification_figure():
         bbox=dict(
             facecolor='white',
             edgecolor='black',
-            boxstyle='circle,pad=0.1'
-        )
+            boxstyle='circle,pad=0.1')
     )
     ax2.yaxis.set_ticklabels([])
-    ax2.yaxis.grid(True, linewidth=1, zorder=-10, alpha=0.75)
+    for spine in ax2.spines.values():
+        spine.set_zorder(110)
 
-    # Opening the convective volume data
+    # Opening the heat content data
     df = []
     for run in runs:
-        fp = '1kMLD_convective_volume_'+run+'.nc'
+        fp = 'ls3k_heat_content_' + run + '.nc'
         df_temp = open_processed_data(run, fp)
         df.append(df_temp)
     df = merge_dfs(df)
-    df = df.set_index('time_counter')
-    df = df.loc['2007-12-01':'2017-08-01']
-    df = df.loc[(df.index.month > 11) | (df.index.month < 5)]
-    df = df.replace(0, np.nan)
-    df = df/1e12  # /1e9 goes from m3 to km3, /1e12 goes thousand km3
+    df = df.where(df > 1)  # Masking a zero somewher
+    df = df/1e21  # J to ZJ
 
-    # Plotting the convective volume time series
-    df = df.groupby(df.index.shift(2, freq='m').year).mean()
+    # Plotting the heat content time series
+    df = df.groupby(df.index.shift(
+        1, freq='ME').shift(1, freq='d').year).mean()
     df.plot(
         ax=ax3,
-        xticks=[2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017],
+        xticks=years,
         color=colours,
         style=linestyles,
         legend=False,
         zorder=100
     )
-    ax3.set_ylabel(
-        'Convective\nvolume ($Tm^3$)',
-        fontdict={'fontsize': 12}
-    )
+    ax3.set_title('')
+    ax3.set_ylabel('Heat content\n'+r'($ZJ$)', fontdict={'fontsize': 12})
     ax3.xaxis.grid(True, linewidth=1, alpha=0.75)
+    ax3.yaxis.grid(True, linewidth=1, alpha=0.75)
     ax3.set_xlabel(None)
     ax3.yaxis.set_tick_params(labelsize=9)
     ax3.xaxis.set_tick_params(labelsize=9)
-    ax3.set_ylim(0, 650)
+    ax3.set_ylim(47.5, 50.75)
     ax3.text(
         0.08,
         0.95,
@@ -219,9 +207,8 @@ def plot_stratification_figure():
             boxstyle='circle,pad=0.1'
         )
     )
-    ax3.yaxis.grid(True, linewidth=1, zorder=-10, alpha=0.75)
 
-    # Plotting the convective volume bar chart
+    # Plotting the heat content bar chart
     means = pd.concat([df.mean(axis=0)])
     means.plot.bar(
         ax=ax4,
@@ -233,29 +220,30 @@ def plot_stratification_figure():
         ylabel='',
         zorder=100
     )
-    ax4.set_xticks(
-        [0.5, 2.5, 4.5],
-        ['Control', 'Tides', 'Tides\nSMLEs'],
-        rotation=0,
-        fontsize=9
-    )
-    ax4.set_ylim(0, 650)
+    ax4.set_title('')
+    ax4.set_xticks([0.5, 2.5, 4.5],
+                   ['Control', 'Tides', 'Tides\nMLEs'], rotation=0, fontsize=9)
+    ax4.set_ylim(47.5, 50.75)
     ax4.yaxis.set_tick_params(labelsize=9)
     labls = [
-        means['EPM157'],
-        means['EPM158'],
-        means['EPM151'],
-        means['EPM152'],
-        means['EPM155'],
-        means['EPM156']
+        means[runs[0]],
+        means[runs[1]],
+        means[runs[2]],
+        means[runs[3]],
+        means[runs[4]],
+        means[runs[5]]
     ]
-    kwargs = {'rotation': 90, 'fontsize': 9}  # For annotating mean values
+    kwargs = {'rotation': 90, 'fontsize': 9,
+              'bbox': dict(facecolor='white',
+                           edgecolor='none',
+                           alpha=0.75,
+                           boxstyle='square,pad=0.1')}
     ax4.bar_label(
         ax4.containers[0],
         labels=[str(i)[:6] for i in labls],
-        padding=3,
-        **kwargs
-    )
+        padding=-35,
+        zorder=120,
+        **kwargs)
     ax4.text(
         0.2,
         0.95,
@@ -271,8 +259,10 @@ def plot_stratification_figure():
             boxstyle='circle,pad=0.1'
         )
     )
+    ax4.yaxis.grid(True, linewidth=1, alpha=0.75, zorder=-10)
     ax4.yaxis.set_ticklabels([])
-    ax4.yaxis.grid(True, linewidth=1, zorder=-10, alpha=0.75)
+    for spine in ax4.spines.values():
+        spine.set_zorder(120)
 
     # Legends
     handles, labels = ax3.get_legend_handles_labels()
@@ -300,19 +290,20 @@ def plot_stratification_figure():
         fontsize=9
     )
 
-    plt.subplots_adjust(hspace=0.3)
-    plt.subplots_adjust(wspace=0.05)
-    fig.subplots_adjust(
+    plt.subplots_adjust(
+        hspace=0.3,
+        wspace=0.05,
         bottom=0.22,
         top=0.94,
-        left=0.13,
+        left=0.14,
         right=0.96
     )
 
-    name = 'figure_ConvR_ConvV.svg'
-    plt.savefig(name)
-    plt.close(fig)
+    name = 'figure_LabSea_HC_and_SC.svg'
+    plt.savefig(name, dpi=600)
+
+    print("Saved: "+name)
 
 
 if __name__ == "__main__":
-    plot_stratification_figure()
+    contents_figure()

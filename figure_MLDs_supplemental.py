@@ -49,7 +49,8 @@ def plot_MLDs_supplemental_figure():
             dms=False,
             x_inline=False,
             y_inline=False,
-            linewidth=1
+            linewidth=1,
+            alpha=0.75
         )
         gl_label_dict = {  # [top, bottom, left, right]
             ax1: [False, False, True, False],
@@ -157,7 +158,7 @@ def plot_MLDs_supplemental_figure():
     # Colourbar
     cbar_ax = fig.add_axes([0.2, 0.91, 0.6, 0.025])
     cb = fig.colorbar(p, cax=cbar_ax, orientation='horizontal', format='%.0f')
-    cb.ax.set_title("Anomaly of mean MLDs, 2008-2018 ($m$)", fontsize=12)
+    cb.ax.set_title("Anomaly of 10-yr mean MLDs ($m$)", fontsize=12)
     cb.ax.tick_params(labelsize=10)
 
     # Adjust bounding whitespace

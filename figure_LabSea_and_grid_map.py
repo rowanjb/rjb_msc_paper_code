@@ -218,14 +218,17 @@ p1 = ax1.pcolormesh(
     ds.nav_lat,
     z3,
     transform=ccrs.PlateCarree(),
-    cmap=cmap)
+    cmap=cmap,
+    rasterized=True
+)
 
 p2 = ax2.pcolormesh(
     ds.nav_lon,
     ds.nav_lat,
     z3,
     transform=ccrs.PlateCarree(),
-    cmap=cmap
+    cmap=cmap,
+    rasterized=True
 )
 
 # Finally, add the label

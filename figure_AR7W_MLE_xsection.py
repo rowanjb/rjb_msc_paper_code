@@ -4,15 +4,13 @@ import xarray as xr
 import numpy as np
 from metpy.interpolate import geodesic
 import matplotlib.pyplot as plt
+import matplotlib as mpl
 import matplotlib.ticker as mticker
 import cartopy.crs as ccrs
 import cartopy.feature as feature
-import pyproj
-import xoak
-import gsw
 
 
-def ANHA4_sections(run):
+def ANHA4_sections():
     """Creates example cross section figures showing isopycnals and the
     MLE SF."""
 
@@ -20,11 +18,18 @@ def ANHA4_sections(run):
 
     # Init figure
     cm = 1/2.54  # Inches to centimeters
-    layout = [['ax1', 'ax1', 'ax2', 'ax2'],
+    layout = [['.', '.', '.', 'ax5'],
+              ['.', '.', '.', 'ax5'],
+              ['.', '.', '.', 'ax5'],
+              ['.', '.', '.', '.'],
+              ['ax1', 'ax1', 'ax2', 'ax2'],
+              ['ax1', 'ax1', 'ax2', 'ax2'],
+              ['ax1', 'ax1', 'ax2', 'ax2'],
               ['ax1', 'ax1', 'ax2', 'ax2'],
               ['ax3', 'ax3', 'ax4', 'ax4'],
               ['ax3', 'ax3', 'ax4', 'ax4'],
-              ['ax5', '.', '.', '.']]
+              ['ax3', 'ax3', 'ax4', 'ax4'],
+              ['ax3', 'ax3', 'ax4', 'ax4']]
     westLon, eastLon, northLat, southLat = -65, -40, 67, 51
     projection = ccrs.AlbersEqualArea(
         central_longitude=-55,
@@ -33,7 +38,7 @@ def ANHA4_sections(run):
     )
     fig, axd = plt.subplot_mosaic(
         layout,
-        figsize=(19*cm, 19*cm),
+        figsize=(19*cm, 15*cm),
         per_subplot_kw={("ax5"): {"projection": projection}}
     )
     ax1, ax2, ax3, ax4 = axd['ax1'], axd['ax2'], axd['ax3'], axd['ax4']
@@ -44,125 +49,50 @@ def ANHA4_sections(run):
     vertices_lat = [53.410189, 60.733433]
 
     def plot_xsection(run, date, ax, letter):
-        # Ex run "EPM151"
-        # Ex date '20130513'
+        
+        fp = 'cross_section_'+run+'_'+date+'.nc'
+        ds = xr.open_dataset(fp)
+        ds = ds.isel(time_counter=0)
+        ds = ds.where(ds['vosaline'] != 0, drop=True)
 
-        # Text file of paths to non-empty model output
-        gridT_txt = '../filepaths/'+run+'_gridT_filepaths.txt'
-        with open(gridT_txt) as f:
-            lines = f.readlines()
-        filepaths_gridT = [line.strip() for line in lines]
+        ds['pot_dens'] = ds['pot_dens']-1000  # Sigma notation
 
-        # Open the files
-        [fp] = [fp for fp in filepaths_gridT if date in fp]
-        vars = ['vosaline',
-                'votemper',
-                'MLE Lf',
-                'i-mle streamfunction',
-                'j-mle streamfunction']
-        ds = xr.open_dataset(fp)[vars]
+        cmap = mpl.colormaps.get_cmap('Greys')
+        cmap.set_bad('cadetblue')
+        cvmin, cvmax = 25, 27.775
+        levels = np.linspace(cvmin, cvmax, 60)
+        p2 = ds['pot_dens'].plot.contourf(
+            ax=ax, add_colorbar=False, cmap='cividis_r', vmin=cvmin,
+            vmax=cvmax, levels=levels, rasterized=True)
+        p1 = ds['Psi'].plot.pcolormesh(
+            ax=ax, add_colorbar=False, vmin=0,
+            vmax=2.7, cmap=cmap, rasterized=True)
+        ds['pot_dens'].plot.contour(
+            ax=ax, add_colorbar=False, cmap='cividis_r', vmin=cvmin,
+            vmax=cvmax, levels=levels, linewidths=0.2)
+        ax.set_title('')
+        ax.set_xticks([0, 240, 480, 720, 958])
+        ax.set_ylim(0, 1000)
+        ax.invert_yaxis()
+        ax.grid(visible=True, axis='both', color='grey', lw=0.5)
 
-        # Mask the LS to save time
-        ds = ds.where(
-            (ds['y_grid_T'] > 250) &
-            (ds['y_grid_T'] < 500) &
-            (ds['x_grid_T'] > 100) &
-            (ds['x_grid_T'] < 250),
-            drop=True
+        run_dict = {"EPM155": "CGRF-\nTS", "EPM156": "ERAI-\nTS"}
+        ax.text(
+            0.025,
+            0.025,
+            run_dict[run],
+            transform=ax.transAxes,
+            fontsize=9,
+            fontweight='bold',
+            va='bottom',
+            ha='left'
         )
-
-        # Interpolate the streamfunction components onto same grid
-        iMLE = ds['i-mle streamfunction'].interp(
-            x_grid_U=ds.x_grid_U-0.5).drop_vars(
-            ['x_grid_U', 'nav_lat_grid_U', 'nav_lon_grid_U'])
-        iMLE = iMLE.rename({'depthu': 'deptht', 'x_grid_U': 'x_grid_T',
-                            'y_grid_U': 'y_grid_T'})
-        jMLE = ds['j-mle streamfunction'].interp(
-            y_grid_V=ds.y_grid_V-0.5).drop_vars(
-            ['y_grid_V', 'nav_lat_grid_V', 'nav_lon_grid_V'])
-        jMLE = jMLE.rename({'depthv': 'deptht', 'x_grid_V': 'x_grid_T',
-                            'y_grid_V': 'y_grid_T'})
-
-        # Calculate the "magnitude" of the streamfunction
-        # Note our end result will be the 3D value of the SF
-        # (the "magnitude"), not some projected quantity
-        ds['Psi'] = (iMLE**2 + jMLE**2)**0.5
-        ds = ds.drop_vars(['i-mle streamfunction',
-                           'j-mle streamfunction',
-                           'nav_lon_grid_U',
-                           'nav_lat_grid_U'])
-        ds = ds.drop_vars(['nav_lon_grid_V',
-                           'nav_lat_grid_V',
-                           'depthu',
-                           'depthv'])
-
-        # For calculating distances etc
-        ds.xoak.set_index(['nav_lat_grid_T', 'nav_lon_grid_T'], 'scipy_kdtree')
-        wgs84 = pyproj.CRS(4326)
-
-        # Define the path
-        start = (vertices_lat[0], vertices_lon[0])  # Starting point
-        end = (vertices_lat[1], vertices_lon[1])  # Ending end
-        # Getting "steps" number of points on the path between start and end
-        path = geodesic(wgs84, start, end, steps=160)
-        # Note 40 is a rough guess at the number of cells spanning the Lab Sea
-        # With 160 steps, I believe there would be a good representation of
-        # the coarse-ness of the 1/4-deg grid
-
-        # Getting the cross section (i.e., values at each point on the
-        # path and at each depth)
-        cross = ds.xoak.sel(
-            nav_lat_grid_T=xr.DataArray(
-                path[:, 1], dims='index', attrs=ds.nav_lat_grid_T.attrs),
-            nav_lon_grid_T=xr.DataArray(
-                path[:, 0], dims='index', attrs=ds.nav_lon_grid_T.attrs)
-        )
-
-        # Getting distances from starting point
-        # Can also get angles but I don't need that now so I will comment
-        # out these lines
-        geod = pyproj.Geod(ellps='sphere')  # Use pyproj.Geod class
-        distances = []
-        # forward_azimuth = [] # Don't need currently
-        for i in path:
-            az12, __, dist = geod.inv(
-                vertices_lon[0], vertices_lat[0], i[0], i[1])
-            distances = np.append(distances, dist)
-            # forward_azimuth = np.append(forward_azimuth, az12)
-        # The first element is always 180
-        # forward_azimuth[0] = forward_azimuth[1]
-        # forward_azimuth = np.radians(forward_azimuth)
-
-        # Add distances to the cross section
-        cross = cross.assign_coords(dists=('index', distances))
-        # and forward azimuth
-        # cross=cross.assign_coords(forward_azimuth=('index',forward_azimuth))
-
-        # Finally just adding density
-        cross['P'] = gsw.p_from_z(
-            (-1)*cross['deptht'],  # (Requires negative depths)
-            cross['nav_lat_grid_T'])
-        cross['SA'] = gsw.SA_from_SP(
-            cross['vosaline'],
-            cross['P'],
-            cross['nav_lon_grid_T'],
-            cross['nav_lat_grid_T'])
-        cross['CT'] = gsw.CT_from_pt(
-            cross['SA'],
-            cross['votemper'])
-        cross['pot_dens'] = gsw.rho(
-            cross['SA'],
-            cross['CT'],
-            0)  # gsw.rho with p=0 gives potential density
-
-        cross['pot_dens'].plot.contourf(ax=ax)
-        cross['Psi'].plot.pcolormesh(ax=ax)
 
         ax.text(
-            0.2,
-            0.9,
+            0.085,
+            0.95,
             letter,
-            transform=ax4.transAxes,
+            transform=ax.transAxes,
             fontsize=14,
             fontweight='bold',
             va='top',
@@ -174,27 +104,97 @@ def ANHA4_sections(run):
             )
         )
 
-        ax.text(
-            0.05,
-            0.07,
-            run + ' ' + date,
-            transform=ax.transAxes,
-            fontsize=9,
-            va='bottom',
-            ha='left',
-            bbox=dict(
-                facecolor='white',
-                edgecolor='black',
-                alpha=1
-            )
-        )
-
-    letters = [['a', 'b',], ['c', 'd']]
+        return p1, p2, ds, levels
+    
+    # Plotting
+    letters = [['b', 'c',], ['d', 'e']]
     for row, run in enumerate(['EPM155', 'EPM156']):
-        for col, date in enumerate(['20130513', '20130702']):
+        for col, date in enumerate(['y2013m05d15', 'y2013m07d04']):
             ax = [[ax1, ax2], [ax3, ax4]][row][col]
             letter = letters[row][col]
-            plot_xsection(run, date, ax, letter)
+            p, p2, ds, levels = plot_xsection(run, date, ax, letter)
+    
+    # Adding dates
+    ax1.text(
+        0.5,
+        1.1,
+        '15 May 2013',
+        transform=ax1.transAxes,
+        fontsize=12,
+        va='center',
+        ha='center'
+    )
+    ax2.text(
+        0.5,
+        1.1,
+        '4 July 2013',
+        transform=ax2.transAxes,
+        fontsize=12,
+        va='center',
+        ha='center'
+    )
+
+    # Dealing with the axes and ticks
+    ax1.xaxis.set_ticklabels([])
+    ax1.set_xlabel('')
+    ax1.set_ylabel('')
+    ax2.xaxis.set_ticklabels([])
+    ax2.axes.yaxis.set_ticklabels([])
+    ax2.set_ylabel('')
+    ax2.set_xlabel('')
+    old_xticks = [0, 240, 480, 720, 958]
+    xticks = [
+        int(round(d, -1)) 
+        for d 
+        in ds['dists'].sel(index=old_xticks).values/1000
+    ]
+    ds['dists'].isel(index=0).values
+    xticks = [
+        round(np.floor(d-ds['dists'].isel(index=0).values/1000)) 
+        for d 
+        in xticks
+    ]
+    ax3.xaxis.set_ticklabels(xticks)
+    ax3.set_xlabel('')
+    ax3.set_ylabel('')
+    ax4.axes.yaxis.set_ticklabels([])
+    ax4.axes.xaxis.set_ticklabels(xticks)
+    ax4.set_ylabel('')
+    ax4.set_xlabel('')
+    fig.text(
+        0.5,
+        0.025,
+        r'Distance along AR7W section ($km$)',
+        fontsize=12,
+        ha='center')
+    fig.text(
+        0.045,
+        0.3,
+        r'Depth ($m$)',
+        fontsize=12,
+        ha='center',
+        rotation=90)
+
+    # Adding colourbars
+    cbar_ax = fig.add_axes([0.15, 0.87, 0.5, 0.025])
+    cb = fig.colorbar(
+        p,
+        cax=cbar_ax,
+        orientation='horizontal',
+        format='%.1f')
+    cb.ax.set_title(
+        r"Cross-sections of the MLE streamfunction, $\Psi$",
+        fontsize=12)
+    cbar_ax = fig.add_axes([0.15, 0.73, 0.5, 0.025])
+    cb = fig.colorbar(
+        p2,
+        cax=cbar_ax,
+        orientation='horizontal',
+        format='%.2f',
+        extend='neither')
+    cb.ax.set_title(r"Isopycnals ($kg$ $m^{-3}$)", fontsize=12)
+    cb.ax.minorticks_off()
+    cb.set_ticks(levels[::9])
 
     # Adding map
     land_50m = feature.NaturalEarthFeature(
@@ -202,21 +202,20 @@ def ANHA4_sections(run):
         'land',
         '50m',
         edgecolor='black',
-        facecolor='gray'
+        facecolor='cadetblue'
     )
     ax5.set_extent(
         [westLon, eastLon, southLat, northLat],
         crs=ccrs.PlateCarree()
     )
     ax5.set_title("AR7W section", fontsize=12, pad=-10)
-    ax5.add_feature(land_50m, color=[0.8, 0.8, 0.8])
-    ax5.set_global()
-    ax5.stock_img()
+    ax5.add_feature(land_50m, color="cadetblue")
     ax5.coastlines(resolution='50m')
     ax5.plot(
         vertices_lon,
         vertices_lat,
-        transform=ccrs.PlateCarree()
+        transform=ccrs.PlateCarree(),
+        color='black'
     )
     gl = ax5.gridlines(
         draw_labels=True,
@@ -233,10 +232,10 @@ def ANHA4_sections(run):
     gl.xlabel_style = {'size': 9}
     gl.ylabel_style = {'size': 9}
     ax5.text(
-        0.2,
+        0.3,
         0.9,
-        'e',
-        transform=ax4.transAxes,
+        'a',
+        transform=ax5.transAxes,
         fontsize=14,
         fontweight='bold',
         va='top',
@@ -248,9 +247,18 @@ def ANHA4_sections(run):
         )
     )
 
-    plt.savefig('figure_AR7W_MLE_xsection.py')
+    plt.subplots_adjust(
+        left=None,
+        bottom=None,
+        right=None,
+        top=None,
+        wspace=0.15,
+        hspace=0.75)
 
-    print("Completed: Cross section calculations for "+run)
+    name = 'figure_AR7W_MLE_xsection.svg'
+    plt.savefig(name)
+
+    print("Saved: "+name)
 
 
 if __name__ == "__main__":

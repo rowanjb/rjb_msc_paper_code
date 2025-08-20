@@ -172,7 +172,7 @@ def plot_MLDs_body_figure():
         ha='right',
         bbox=dict(
             facecolor='white',
-            edgecolor='none',
+            edgecolor='black',
             boxstyle='circle,pad=0.1'
         )
     )

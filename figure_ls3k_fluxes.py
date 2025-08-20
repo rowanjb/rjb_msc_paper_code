@@ -10,12 +10,15 @@
 import xarray as xr
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib import colors
+from matplotlib.collections import PolyCollection
 import pyproj
 import cartopy.crs as ccrs
 import cartopy.feature as feature
 from cftime import DatetimeNoLeap
 import matplotlib as mpl
 import matplotlib.ticker as mticker
+import pyproj
 
 
 def create_temporary_files():
@@ -748,7 +751,6 @@ def ls3k_plot_volume_fluxes():
 
     print("Beginning: volume flux supplemental figure")
 
-    areas = xr.open_dataset('masks/ls3k_flux_face_hzdims.nc')['projected_area']
     EPM151 = xr.open_dataset('ls3k_fluxes_plotting_EPM151.nc')
     EPM152 = xr.open_dataset('ls3k_fluxes_plotting_EPM152.nc')
     EPM155 = xr.open_dataset('ls3k_fluxes_plotting_EPM155.nc')
@@ -756,49 +758,262 @@ def ls3k_plot_volume_fluxes():
     EPM157 = xr.open_dataset('ls3k_fluxes_plotting_EPM157.nc')
     EPM158 = xr.open_dataset('ls3k_fluxes_plotting_EPM158.nc')
 
+    areas = xr.open_dataset('masks/ls3k_flux_face_hzdims.nc')
+    areas['z'] = EPM151['deptht'].values
+    areas = areas.rename({'z': 'deptht'})
+
     # Init the figure
     cm = 1/2.54  # Inches to centimeters
-    layout = [['ax1', 'ax1', 'ax1', 'ax2', 'ax2', 'ax2'],
-              ['.', 'ax3', 'ax3', 'ax3', 'ax3', '.'],
-              ['.', 'ax4', 'ax4', 'ax4', 'ax4', '.'],
-              ['.', 'ax5', 'ax5', 'ax5', 'ax5', '.'],
-              ['.', 'ax6', 'ax6', 'ax6', 'ax6', '.'],
-              ['ax7', 'ax7', 'ax7', 'ax8', 'ax8', 'ax8']]
-    fig, axd = plt.subplot_mosaic(layout, figsize=(19*cm, 19*cm))
+    layout = [
+        ['ax1', 'ax1', 'ax1', 'ax1', 'ax2', 'ax2', 'ax2', 'ax2', '.'],
+        ['ax1', 'ax1', 'ax1', 'ax1', 'ax2', 'ax2', 'ax2', 'ax2', '.'],
+        ['ax1', 'ax1', 'ax1', 'ax1', 'ax2', 'ax2', 'ax2', 'ax2', '.'],
+        ['ax7', 'ax7', 'ax7', 'ax7', 'ax8', 'ax8', 'ax8', 'ax8', '.'],
+        ['ax7', 'ax7', 'ax7', 'ax7', 'ax8', 'ax8', 'ax8', 'ax8', '.'],
+        ['ax7', 'ax7', 'ax7', 'ax7', 'ax8', 'ax8', 'ax8', 'ax8', '.'],
+        ['.', '.', '.', '.', '.', '.', '.', '.', '.'],
+        ['ax3', 'ax3', 'ax3', 'ax3', 'ax3', 'ax3', 'ax3', 'ax3', '.'],
+        ['ax3', 'ax3', 'ax3', 'ax3', 'ax3', 'ax3', 'ax3', 'ax3', '.'],
+        ['ax4', 'ax4', 'ax4', 'ax4', 'ax4', 'ax4', 'ax4', 'ax4', '.'],
+        ['ax4', 'ax4', 'ax4', 'ax4', 'ax4', 'ax4', 'ax4', 'ax4', '.'],
+        ['ax5', 'ax5', 'ax5', 'ax5', 'ax5', 'ax5', 'ax5', 'ax5', '.'],
+        ['ax5', 'ax5', 'ax5', 'ax5', 'ax5', 'ax5', 'ax5', 'ax5', '.'],
+        ['ax6', 'ax6', 'ax6', 'ax6', 'ax6', 'ax6', 'ax6', 'ax6', '.'],
+        ['ax6', 'ax6', 'ax6', 'ax6', 'ax6', 'ax6', 'ax6', 'ax6', '.']]
+    fig, axd = plt.subplot_mosaic(layout, figsize=(19*cm, 21*cm))
     ax1, ax2, ax3, ax4 = axd['ax1'], axd['ax2'], axd['ax3'], axd['ax4']
     ax5, ax6, ax7, ax8 = axd['ax5'], axd['ax6'], axd['ax7'], axd['ax8']
 
-    ## Calculating the distance between cells?
-    #geod = pyproj.Geod(ellps='sphere')
-    #_, _, dist = geod.inv(
-    #    vertices_lon[0],
-    #    vertices_lat[0],
-    #    vertices_lon[1],
-    #    vertices_lat[1])
+    # Calculating the distance between cells
+    geod = pyproj.Geod(ellps='sphere')
+    distances = [0]
+    lats = EPM151['nav_lat_grid_T'].values
+    lons = EPM151['nav_lon_grid_T'].values
+    for n, lat in enumerate(lats[:-1]):
+        _, _, dist = geod.inv(
+            lons[n],
+            lat,
+            lons[n+1],
+            lats[n+1]
+        )
+        distances.append(dist/1000)
     
-    # Ax1 : Lab Current to interior surface volume flux
-    print(EPM151)
+    # Plotting the time series
+    runs = [EPM157, EPM158, EPM151, EPM152, EPM155, EPM156]
+    labels = ['CGRF-C', 'ERAI-C', 'CGRF-T', 'ERAI-T', 'CGRF-TS', 'ERAI-TS']
+    colours = plt.cm.viridis([0, 0, 0.5, 0.5, 0.8, 0.8])
+    c_box = ['r', 'r', 'b', 'b']
+    ls_box = ['-', '--', '-', '--']
+    linestyles = ['-', '--', '-', '--', '-', '--']
+    axes = [ax1, ax2, ax7, ax8]
+    vars = ['vol_flux_lc_srfc', 'vol_flux_irminger_srfc',
+            'vol_flux_lc_depth', 'vol_flux_irminger_depth']
+    ylims = [(0, 4), (-4.5, 5), (0,12), (-7, 13)]
+    for nax, ax in enumerate(axes):
+        lines = []
+        for nrun, run in enumerate(runs):
+            da = run[vars[nax]].resample(
+                time_counter='YE',origin='start_day').mean().sel(
+                    time_counter=slice('2007-12-31','2017-12-31')
+                )/1e6
+            p = da.plot(
+                ax=ax,
+                c=colours[nrun],
+                linestyle=linestyles[nrun],
+                label = labels[nrun]
+            )
+            lines = lines + p
+        ax.tick_params(axis='both', labelsize=12)
+        ax.grid(visible=True, axis='both', which='both', color='grey', lw=0.5)
+        ax.set_ylim(ylims[nax])
+        ax.set_ylabel("")        
+        ax.set_xlabel("")
+        if ax in [ax1, ax2]:
+            ax.set_xticklabels([])
+        ax.add_patch(
+            plt.Rectangle(
+                (0, 0), 1, 1,
+                ec=c_box[nax], fc="none", clip_on=False,
+                zorder=10, transform=ax.transAxes, lw=1.5, ls=ls_box[nax]
+            )
+        )
+        ax.spines['top'].set_visible(False)
+        ax.spines['right'].set_visible(False)
+        ax.spines['left'].set_visible(False)
+        ax.spines['bottom'].set_visible(False)
+    plt.text(
+        -0.23,
+        0,
+        "Volume flux ($Sv$)",
+        va='center',
+        rotation=90,
+        fontsize=12,
+        transform=ax1.transAxes
+    )
+    ax2.legend(
+        handles = [lines[0], lines[2], lines[4], lines[1], lines[3], lines[5]],
+        loc='upper center',
+        bbox_to_anchor=(1.4, 0.6),
+        ncol=1,
+        shadow=True,
+        fontsize=12
+    )
+
+    # Ax3, 4, 5, 6 : Sections
+    axes = [ax3, ax4, ax5, ax6]
+    run_pairs = [(EPM151, EPM157), (EPM155, EPM151),
+                 (EPM152, EPM158), (EPM156, EPM152)]
+    for nax, ax in enumerate(axes):
+        runs = run_pairs[nax]
+        da = (runs[0]['vol_flux_section_mean']
+              -runs[1]['vol_flux_section_mean'])
+        da = da/areas['projected_area']
+        da['cell_bottoms'] = areas['e3'].cumsum(dim='deptht')/1000
+        da['dists'] = areas['horiz_dim'].cumsum(
+            dim='ids').isel(deptht=0).drop_vars('deptht')/1000
+        da = da.where(da!=0)  # Mask bathy
+        # Now, to plot the data we cannot simply use pcolormesh, because
+        # the bottom cells have irregular thicknesses. I will therefore use
+        # PolyCollection, which (full disclosure) I only learned about 
+        # through an LLM. My original solution was way more convoluted!
+        vertices = []
+        data = []
+        for nid, id in enumerate(da['ids'].values):
+            if nid == 0: 
+                x0 = 0
+            else:
+                x0 = da['dists'].isel(ids=nid-1)
+            x1 = da['dists'].isel(ids=nid)
+            # *note bottoms are positive, so actually larger than tops!
+            # I use invert_yaxis() later
+            cell_bottoms = da['cell_bottoms'].isel(ids=nid).values
+            for nd, d in enumerate(cell_bottoms):
+                bottom = d
+                if nd == 0:
+                    top = 0
+                else:
+                    top = cell_bottoms[nd-1]
+                vertices.append([(x0, bottom), (x1, bottom), (x1, top), (x0, top)])
+                data.append(da.isel(ids=nid, deptht=nd).values)
+        cmap = mpl.colormaps.get_cmap('PRGn')
+        cmap.set_bad('cadetblue')
+        pc = PolyCollection(
+            vertices,
+            array=np.array(data),
+            cmap=cmap,
+            edgecolors='none',
+            norm = colors.Normalize(vmin=-0.075, vmax=0.075),
+            rasterized=True
+        )
+        p = ax.add_collection(pc)
+        ax.set_ylim(0, 4.1)
+        ax.set_xlim(0, da['dists'].isel(ids=-1).values)
+        ax.add_patch(
+            plt.Rectangle(
+                (da['dists'].isel(ids=65), 0),
+                da['dists'].isel(ids=120)-da['dists'].isel(ids=65), 0.355,
+                ec=c_box[0], fc="none", clip_on=False, zorder=10, lw=1.5,
+                ls=ls_box[0]
+            )
+        )
+        ax.add_patch(
+            plt.Rectangle(
+                (da['dists'].isel(ids=65), 0.445),
+                da['dists'].isel(ids=120)-da['dists'].isel(ids=65), 3.6-0.045,
+                ec=c_box[2], fc="none", clip_on=False, zorder=10, lw=1.5,
+                ls=ls_box[2]
+            )
+        )
+        ax.add_patch(
+            plt.Rectangle(
+                (da['dists'].isel(ids=180), 0),
+                da['dists'].isel(ids=230)-da['dists'].isel(ids=180), 0.355,
+                ec=c_box[1], fc="none", clip_on=False, zorder=10, lw=1.5,
+                ls=ls_box[1]
+            )
+        )
+        ax.add_patch(
+            plt.Rectangle(
+                (da['dists'].isel(ids=180), 0.445),
+                da['dists'].isel(ids=230)-da['dists'].isel(ids=180), 3.6-0.045,
+                ec=c_box[3], fc="none", clip_on=False, zorder=10, lw=1.5,
+                ls=ls_box[3]
+            )
+        )
+        ax.grid(visible=True, axis='both', which='both', color='grey', lw=0.5)
+        ax.tick_params(axis='both', labelsize=12)
+        if ax in [ax3, ax4, ax5]:
+            ax.set_xticklabels([])
+        ax.invert_yaxis()
+        ax.set_ylabel("")
+        ax.set_xlabel("")
+        ax.set_yticks([0,1.5,3])
+    ax6.text(
+        0.5,
+        -0.6,
+        "Distance around perimeter  ($km$)",
+        va='center',
+        ha='center',
+        fontsize=12,
+        transform=ax6.transAxes
+    )
+    plt.text(
+        -0.125,
+        0,
+        "Depth ($km$)",
+        va='center',
+        rotation=90,
+        fontsize=12,
+        transform=ax4.transAxes
+    )
+    cbar_ax = fig.add_axes([0.85, 0.1, 0.02, 0.35])
+    cb = fig.colorbar(p, cax=cbar_ax)
+    cb.ax.text(
+        1.6,
+        1.07,
+        "Volume flux\n($m^3$ $s^{-1}$)",
+        ha='center',
+        fontsize=12,
+        transform=cb.ax.transAxes
+    )
 
     # Adding the titles
-    plt.suptitle(r"Boundary $\rightarrow$ interior volume fluxes")
-    ax1.set_title(r'Labrador Current, 0-400 m', fontsize=12)
-    ax2.set_title(r'West Greenland Current, 0-400 m', fontsize=12)
-    ax3.set_title(r'Anomaly of 10-yr mean due to tides (CGRF)', fontsize=12)
-    ax4.set_title(r'Anomaly of 10-yr mean due to MLEs (CGRF)', fontsize=12)
-    ax5.set_title(r'Anomaly of 10-yr mean due to tides (ERA-I)', fontsize=12)
-    ax6.set_title(r'Anomaly of 10-yr mean due to MLE (ERA-I)', fontsize=12)
-    ax7.set_title(r'Labrador Current, 400 m-bottom', fontsize=12)
-    ax8.set_title(r'West Greenland Current, 400 m-bottom', fontsize=12)
-
+    titles = [
+        'LC, 0-400 m',
+        'WGC, 0-400 m',
+        'Tides\nCGRF',
+        'MLEs\nCGRF',
+        'Tides\nERA-I',
+        'MLEs\nERA-I',
+        'LC, 400 m-bottom',
+        'WGC, 400 m-bottom'
+    ]
+    axes = [ax1, ax2, ax3, ax4, ax5, ax6, ax7, ax8]
+    xdist = [0.965, 0.965, 0.99, 0.99, 0.99, 0.99, 0.965, 0.965]
+    ydist = [0.95, 0.95, 0.95, 0.95, 0.95, 0.95, 0.95, 0.95]
+    for n, ax in enumerate(axes):
+        ax.text(
+            xdist[n],
+            ydist[n],
+            titles[n],
+            transform=ax.transAxes,
+            fontsize=9,
+            fontweight='bold',
+            va='top',
+            ha='right',
+            zorder=20,
+        )
+        
     # Annotating the letters
-    letters = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h']
+    letters = ['a', 'b', 'e', 'f', 'g', 'h', 'c', 'd']
+    xdist = [0.1, 0.1, 0.05, 0.05, 0.05, 0.05, 0.1, 0.1]
+    ydist = [0.95, 0.95, 0.92, 0.92, 0.92, 0.92, 0.95, 0.95]
     axes = [ax1, ax2, ax3, ax4, ax5, ax6, ax7, ax8]
     for n, ax in enumerate(axes):
-        letter = letters[n]
         ax.text(
-            0.2,
-            0.9,
-            letter,
+            xdist[n],
+            ydist[n],
+            letters[n],
             transform=ax.transAxes,
             fontsize=14,
             fontweight='bold',
@@ -810,6 +1025,14 @@ def ls3k_plot_volume_fluxes():
                 boxstyle='circle,pad=0.1'
             )
         )
+
+    plt.subplots_adjust(
+        hspace=0.5,
+        wspace=1.5,
+        right=0.85,
+        left=0.12,
+        top=0.95,
+        bottom=0.1)
 
     name = 'figure_ls3k_fluxes_time_series.svg'
     plt.savefig(name, dpi=600)

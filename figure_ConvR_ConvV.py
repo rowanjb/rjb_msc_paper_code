@@ -225,8 +225,6 @@ def plot_stratification_figure():
         )
     )
     ax3.yaxis.grid(True, linewidth=1, zorder=-10, alpha=0.75)
-    for spine in ax3.spines.values():
-        spine.set_zorder(120)
 
     # Plotting the convective volume bar chart
     means = pd.concat([df.mean(axis=0)])
@@ -280,6 +278,8 @@ def plot_stratification_figure():
     )
     ax4.yaxis.set_ticklabels([])
     ax4.yaxis.grid(True, linewidth=1, zorder=-10, alpha=0.75)
+    for spine in ax4.spines.values():
+        spine.set_zorder(120)
 
     # Legends
     handles, labels = ax3.get_legend_handles_labels()

@@ -2,7 +2,6 @@
 
 import xarray as xr
 import numpy as np
-from metpy.interpolate import geodesic
 import matplotlib.pyplot as plt
 import matplotlib as mpl
 import matplotlib.ticker as mticker
@@ -49,7 +48,7 @@ def ANHA4_sections():
     vertices_lat = [53.410189, 60.733433]
 
     def plot_xsection(run, date, ax, letter):
-        
+
         fp = 'cross_section_'+run+'_'+date+'.nc'
         ds = xr.open_dataset(fp)
         ds = ds.isel(time_counter=0)
@@ -105,7 +104,7 @@ def ANHA4_sections():
         )
 
         return p1, p2, ds, levels
-    
+
     # Plotting
     letters = [['b', 'c',], ['d', 'e']]
     for row, run in enumerate(['EPM155', 'EPM156']):
@@ -113,7 +112,7 @@ def ANHA4_sections():
             ax = [[ax1, ax2], [ax3, ax4]][row][col]
             letter = letters[row][col]
             p, p2, ds, levels = plot_xsection(run, date, ax, letter)
-    
+
     # Adding dates
     ax1.text(
         0.5,
@@ -144,14 +143,14 @@ def ANHA4_sections():
     ax2.set_xlabel('')
     old_xticks = [0, 240, 480, 720, 958]
     xticks = [
-        int(round(d, -1)) 
-        for d 
+        int(round(d, -1))
+        for d
         in ds['dists'].sel(index=old_xticks).values/1000
     ]
     ds['dists'].isel(index=0).values
     xticks = [
-        round(np.floor(d-ds['dists'].isel(index=0).values/1000)) 
-        for d 
+        round(np.floor(d-ds['dists'].isel(index=0).values/1000))
+        for d
         in xticks
     ]
     ax3.xaxis.set_ticklabels(xticks)
@@ -183,7 +182,7 @@ def ANHA4_sections():
         orientation='horizontal',
         format='%.1f')
     cb.ax.set_title(
-        r"Cross-sections of the MLE streamfunction, $\Psi$",
+        r"Cross-sections of the SMLE streamfunction, $\Psi$",
         fontsize=12)
     cbar_ax = fig.add_axes([0.15, 0.73, 0.5, 0.025])
     cb = fig.colorbar(

@@ -257,9 +257,9 @@ def ls3k_plot_barh_diffs():
     # Objects to loop over
     bar_labels = (  # Will finish in Inkscape
         "Tides",  # CGRF
-        "MLEs",  # CGRF
+        "SMLEs",  # CGRF
         "Tides",  # ERA-I
-        "MLEs"  # ERA-I
+        "SMLEs"  # ERA-I
     )
     runs = [  # We want to look at:
         (EPM151, EPM157),  # tides minus control (CGRF)
@@ -992,15 +992,17 @@ def ls3k_plot_volume_fluxes():
         'LC, 0-400 m',
         'WGC, 0-400 m',
         'Tides\nCGRF',
-        'MLEs\nCGRF',
+        'SMLEs\nCGRF',
         'Tides\nERA-I',
-        'MLEs\nERA-I',
+        'SMLEs\nERA-I',
         'LC, 400 m-bottom',
         'WGC, 400 m-bottom'
     ]
     axes = [ax1, ax2, ax3, ax4, ax5, ax6, ax7, ax8]
-    xdist = [0.965, 0.965, 0.09, 0.09, 0.09, 0.09, 0.965, 0.965]
+    xdist = [0.965, 0.965, 0.01, 0.01, 0.01, 0.01, 0.965, 0.965]
     ydist = [0.95, 0.95, 0.6, 0.6, 0.6, 0.6, 0.95, 0.95]
+    justify = ['right', 'right', 'left', 'left',
+               'left', 'left', 'right', 'right']
     for n, ax in enumerate(axes):
         ax.text(
             xdist[n],
@@ -1010,7 +1012,7 @@ def ls3k_plot_volume_fluxes():
             fontsize=9,
             fontweight='bold',
             va='top',
-            ha='right',
+            ha=justify[n],
             zorder=20,
         )
         

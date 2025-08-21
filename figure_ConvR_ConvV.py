@@ -11,6 +11,8 @@ from datetime import datetime
 def plot_stratification_figure():
     """Make a plot of convective resistance and volume."""
 
+    print("Beginning: Convective resistance and volume plots")
+
     # Init the figure
     cm = 1/2.54  # Inches to centimeters
     fig, [[ax1, ax2], [ax3, ax4]] = plt.subplots(
@@ -30,9 +32,9 @@ def plot_stratification_figure():
     # and storing it in a Pandas dataframe
     def open_processed_data(run, fp):
         ds = xr.open_dataarray(fp)
-        try: # Some of the data has deptht as a coord...
+        try:  # Some of the data has deptht as a coord...
             df = ds.drop_vars(['time_centered', 'deptht']).to_dataframe(run)
-        except: # ...and some doesn't
+        except:  # ...and some doesn't
             df = ds.drop_vars('time_centered').to_dataframe(run)
         df = df.reset_index()
         df['time_counter'] = df['time_counter'].astype(str)
@@ -74,7 +76,8 @@ def plot_stratification_figure():
     df = df/1e15  # Handling the units (J -> PJ)
 
     # Plotting the convective resistance time series
-    df = df.groupby(df.index.shift(1, freq='m').shift(1, freq='d').year).mean()
+    df = df.groupby(df.index.shift(
+        1, freq='ME').shift(1, freq='d').year).mean()
     df.plot(
         ax=ax1,
         xticks=[2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017],
@@ -98,7 +101,7 @@ def plot_stratification_figure():
     )
     ax1.set_ylim(300, 1900)
     ax1.text(
-        0.08,
+        0.05,
         0.95,
         'a',
         transform=ax1.transAxes,
@@ -113,6 +116,8 @@ def plot_stratification_figure():
         )
     )
     ax1.yaxis.grid(True, linewidth=1, zorder=-10, alpha=0.75)
+    for spine in ax1.spines.values():
+        spine.set_zorder(120)
 
     # Plotting the convective resistance bar chart
     means.plot.bar(
@@ -155,7 +160,7 @@ def plot_stratification_figure():
         **kwargs
     )
     ax2.text(
-        0.2,
+        0.15,
         0.95,
         'b',
         transform=ax2.transAxes,
@@ -186,7 +191,7 @@ def plot_stratification_figure():
     df = df/1e12  # /1e9 goes from m3 to km3, /1e12 goes thousand km3
 
     # Plotting the convective volume time series
-    df = df.groupby(df.index.shift(2, freq='m').year).mean()
+    df = df.groupby(df.index.shift(2, freq='ME').year).mean()
     df.plot(
         ax=ax3,
         xticks=[2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017],
@@ -205,7 +210,7 @@ def plot_stratification_figure():
     ax3.xaxis.set_tick_params(labelsize=9)
     ax3.set_ylim(0, 650)
     ax3.text(
-        0.08,
+        0.05,
         0.95,
         'c',
         transform=ax3.transAxes,
@@ -220,6 +225,8 @@ def plot_stratification_figure():
         )
     )
     ax3.yaxis.grid(True, linewidth=1, zorder=-10, alpha=0.75)
+    for spine in ax3.spines.values():
+        spine.set_zorder(120)
 
     # Plotting the convective volume bar chart
     means = pd.concat([df.mean(axis=0)])
@@ -257,7 +264,7 @@ def plot_stratification_figure():
         **kwargs
     )
     ax4.text(
-        0.2,
+        0.15,
         0.95,
         'd',
         transform=ax4.transAxes,
@@ -312,7 +319,7 @@ def plot_stratification_figure():
     name = 'figure_ConvR_ConvV.svg'
     plt.savefig(name)
     plt.close(fig)
-
+    print("Saved: "+name)
 
 if __name__ == "__main__":
     plot_stratification_figure()

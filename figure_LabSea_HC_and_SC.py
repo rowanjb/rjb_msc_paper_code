@@ -82,7 +82,7 @@ def contents_figure():
     ax1.set_title('')
     ax1.set_ylim(7.422e1, 7.433275e1)
     ax1.text(
-        0.08,
+        0.05,
         0.95,
         'a',
         transform=ax1.transAxes,
@@ -146,7 +146,7 @@ def contents_figure():
         **kwargs
     )
     ax2.text(
-        0.2,
+        0.15,
         0.95,
         'b',
         transform=ax2.transAxes,
@@ -193,7 +193,7 @@ def contents_figure():
     ax3.xaxis.set_tick_params(labelsize=9)
     ax3.set_ylim(47.5, 50.75)
     ax3.text(
-        0.08,
+        0.05,
         0.95,
         'c',
         transform=ax3.transAxes,
@@ -245,7 +245,7 @@ def contents_figure():
         zorder=120,
         **kwargs)
     ax4.text(
-        0.2,
+        0.15,
         0.95,
         'd',
         transform=ax4.transAxes,

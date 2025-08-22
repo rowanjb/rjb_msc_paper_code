@@ -41,7 +41,7 @@ def biogeochem_plot():
                 date_string, '%Y-%m-%d %H:%M:%S'))
         df['time_counter'] = pd.to_datetime(df['time_counter'])
         df = df.set_index('time_counter')
-        df = df.loc['2008-01-01':'2018-01-01']
+        df = df.loc['2007-12-01':'2017-11-30']
         return df
 
     # Function for merging dataframes from each run

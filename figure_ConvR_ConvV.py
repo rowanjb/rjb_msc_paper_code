@@ -68,24 +68,24 @@ def plot_stratification_figure():
         df.append(df_temp)
     df = merge_dfs(df)
     df = df.set_index('time_counter')
-    # Defining our period of interest and taking winter means
+    # Defining our period of interest
     # Note the years are defined by the winter (including previous December)
     df = df.loc['2007-12-01':'2017-11-30']
-    df = df.loc[(df.index.month > 11) | (df.index.month < 5)]
     df = df.where(df != 0)  # Masking any spurious zeros
     df = df/1e15  # Handling the units (J -> PJ)
 
     # Plotting the convective resistance time series
-    df = df.groupby(df.index.shift(
-        1, freq='ME').shift(1, freq='d').year).mean()
+    years = [2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018]
+    years_dt = [datetime(year, 1, 1) for year in years]
     df.plot(
         ax=ax1,
-        xticks=[2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017],
         color=colours,
+        xticks=years_dt,
         style=linestyles,
         legend=False,
-        zorder=100
+        zorder=100,
     )
+    ax1.set_xticklabels(labels=years, ha='center', rotation=0)
     ax1.set_xlabel(None)
     ax1.xaxis.grid(True, linewidth=1, alpha=0.75)
     means = df.mean(axis=0)
@@ -96,10 +96,11 @@ def plot_stratification_figure():
         fontdict={'fontsize': 12}
     )
     ax1.set_title(
-        r'Yearly winter mean',
+        r'Mean stratification',
         fontdict={'fontsize': 12}
     )
-    ax1.set_ylim(300, 1900)
+    ax1.set_ylim(100, 2350)
+    ax1.set_xlim(datetime(2007, 7, 2), datetime(2018, 7, 2))
     ax1.text(
         0.05,
         0.95,
@@ -140,10 +141,10 @@ def plot_stratification_figure():
     )
     ax2.yaxis.set_tick_params(labelsize=9)
     ax2.set_title(
-        r'10-yr winter mean',
+        r'10-yr mean',
         fontdict={'fontsize': 12}
     )
-    ax2.set_ylim(300, 1900)
+    ax2.set_ylim(100, 2350)
     labls = [
         means['EPM157'],
         means['EPM158'],
@@ -194,14 +195,14 @@ def plot_stratification_figure():
     df = df.groupby(df.index.shift(2, freq='ME').year).mean()
     df.plot(
         ax=ax3,
-        xticks=[2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017],
+        xticks=years,
         color=colours,
         style=linestyles,
         legend=False,
         zorder=100
     )
     ax3.set_ylabel(
-        'Convective\nvolume ($Tm^3$)',
+        'Winter mean\nconvective\nvolume ($Tm^3$)',
         fontdict={'fontsize': 12}
     )
     ax3.xaxis.grid(True, linewidth=1, alpha=0.75)
@@ -209,6 +210,7 @@ def plot_stratification_figure():
     ax3.yaxis.set_tick_params(labelsize=9)
     ax3.xaxis.set_tick_params(labelsize=9)
     ax3.set_ylim(0, 650)
+    ax3.set_xlim(2007.5, 2018.5)
     ax3.text(
         0.05,
         0.95,
@@ -312,7 +314,7 @@ def plot_stratification_figure():
     fig.subplots_adjust(
         bottom=0.22,
         top=0.94,
-        left=0.13,
+        left=0.14,
         right=0.96
     )
 

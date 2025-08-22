@@ -120,7 +120,7 @@ def contents_figure():
         ['Control', 'Tides', 'Tides\nMLEs'], rotation=0, fontsize=9)
     ax2.yaxis.set_tick_params(labelsize=9)
     ax2.set_title(
-        r'10-yr winter mean',
+        r'10-yr mean',
         fontdict={'fontsize': 12}
     )
     ax2.yaxis.grid(True, linewidth=1, alpha=0.75, zorder=-10)

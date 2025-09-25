@@ -756,7 +756,7 @@ def ls3k_plot_barh_diffs():
 def ls3k_plot_volume_fluxes():
     """Creates figure of fluxes for paper."""
 
-    print("Beginning: volume flux supplemental figure")
+    print("Beginning: volume flux non-barchart figure")
 
     EPM151 = xr.open_dataset('ls3k_fluxes_plotting_EPM151.nc')
     EPM152 = xr.open_dataset('ls3k_fluxes_plotting_EPM152.nc')
@@ -804,6 +804,18 @@ def ls3k_plot_volume_fluxes():
             lats[n+1]
         )
         distances.append(dist/1000)
+
+    # How I figured out that I was flipping the LC and the WGC in my plots,
+    # with the logic being the the WGC/Irminger section starts at ids=65,
+    # and the below code shows that is approx. 1,080 km from the start of
+    # the boundary. Hence it is the leftmost and most active flux section
+    # in the figure
+    # d = [0]
+    # for n, i in enumerate(distances[:-1]):
+    #     d.append(d[n]+distances[n+1])
+    # print(d)
+    # print(d[65])
+    # quit()
 
     # Plotting the time series
     runs = [EPM157, EPM158, EPM151, EPM152, EPM155, EPM156]

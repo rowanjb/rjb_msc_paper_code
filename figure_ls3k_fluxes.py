@@ -822,9 +822,9 @@ def ls3k_plot_volume_fluxes():
     labels = ['CGRF-C', 'ERAI-C', 'CGRF-T', 'ERAI-T', 'CGRF-TS', 'ERAI-TS']
     colours = plt.cm.viridis([0, 0, 0.5, 0.5, 0.8, 0.8])
     c_box = ['r', 'r', 'b', 'b']
-    ls_box = ['-', '--', '-', '--']
+    ls_box = ['--', '-', '--', '-']
     linestyles = ['-', '--', '-', '--', '-', '--']
-    axes = [ax1, ax2, ax7, ax8]
+    axes = [ax2, ax1, ax8, ax7]
     vars = ['vol_flux_lc_srfc', 'vol_flux_irminger_srfc',
             'vol_flux_lc_depth', 'vol_flux_irminger_depth']
     ylims = [(0, 4), (-4.5, 5), (0, 12), (-7, 13)]
@@ -1001,14 +1001,14 @@ def ls3k_plot_volume_fluxes():
 
     # Adding the titles
     titles = [
-        'LC, 0-400 m',
         'WGC, 0-400 m',
+        'LC, 0-400 m',
         'Tides\nCGRF',
         'SMLEs\nCGRF',
         'Tides\nERA-I',
         'SMLEs\nERA-I',
-        'LC, 400 m-bottom',
-        'WGC, 400 m-bottom'
+        'WGC, 400 m-bottom',
+        'LC, 400 m-bottom'
     ]
     axes = [ax1, ax2, ax3, ax4, ax5, ax6, ax7, ax8]
     xdist = [0.965, 0.965, 0.01, 0.01, 0.01, 0.01, 0.965, 0.965]
@@ -1027,7 +1027,7 @@ def ls3k_plot_volume_fluxes():
             ha=justify[n],
             zorder=20,
         )
-        
+
     # Annotating the letters
     letters = ['a', 'b', 'e', 'f', 'g', 'h', 'c', 'd']
     xdist = [0.1, 0.1, 0.05, 0.05, 0.05, 0.05, 0.1, 0.1]

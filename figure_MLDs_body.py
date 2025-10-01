@@ -156,7 +156,7 @@ def plot_MLDs_body_figure():
     )
     ax1.set_xticks(
         [0.5, 2.5, 4.5, 6, 7],
-        ['Control', 'Tides', 'Tides\nSMLEs', '1/60°\nmodel', 'Argo'],
+        ['Control', 'Tides', 'Tides\nMLEp', '1/60°\nmodel', 'Argo'],
         rotation=0,
         fontsize=12
     )

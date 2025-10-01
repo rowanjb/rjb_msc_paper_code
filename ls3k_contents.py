@@ -12,8 +12,11 @@ from functools import reduce
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 
-def heat_and_salt_content(run): 
-    """Calculates heat and salt content in the interior Lab Sea."""
+def heat_and_salt_content(run, depth_cutoff=False, depth_lim=400): 
+    """Calculates heat and salt content in the interior Lab Sea.
+    With depth_cutoff=True (default=False), you cut the depth
+    to the surface only, down to a depth specified with depth_lim
+    (default=400)."""
 
     print("Beginning: Heat and salt content calculations for "+run)
 
@@ -36,7 +39,7 @@ def heat_and_salt_content(run):
     DS = xr.open_mfdataset(filepaths_gridT,preprocess=preprocess_gridT)
 
     # Add horizontal cell dims
-    DS[['e1t','e2t']] = e1t,e2t 
+    DS[['e1t','e2t']] = e1t,e2t
 
     # Need to mask the shelves/sea floor, or else the "0" temperatures are counted
     # Easy way to do this is to mask anywhere with 0 salinities, since 0 temps are plausible
@@ -48,6 +51,10 @@ def heat_and_salt_content(run):
     # Apply region mask
     DS.coords['mask'] = mask
     DS = DS.where(DS.mask == 1, drop=True)
+
+    # Optionally cut at depth
+    if depth_cutoff==True:
+        DS = DS.where(DS.deptht<depth_lim, drop=True)
 
     #== Heat content calculations ==# 
 
@@ -75,7 +82,11 @@ def heat_and_salt_content(run):
     DS['heat_content'] = DS['volumes'] * DS['pot_dens'] * DS['cp'] * ( DS['votemper'] - refT )
 
     # Take the sum in space and save
-    DS['heat_content'].sum(['deptht','y_grid_T','x_grid_T']).to_netcdf('ls3k_heat_content_'+run+'.nc')
+    if depth_cutoff==True:
+        fp_heat = 'ls3k_heat_content_'+run+'_'+str(depth_lim)+'.nc'
+    else:
+        fp_heat = 'ls3k_heat_content_'+run+'.nc'
+    DS['heat_content'].sum(['deptht','y_grid_T','x_grid_T']).to_netcdf(fp_heat)
 
     print('Completed: Heat content saved for ' + run)
 
@@ -89,10 +100,14 @@ def heat_and_salt_content(run):
     DS['salt_content'] = DS['volumes'] * DS['vosaline'] * DS['insit_dens']
 
     # Take the sum in space and save
-    DS['salt_content'].sum(['deptht','y_grid_T','x_grid_T']).to_netcdf('ls3k_salt_content_'+run+'.nc')
+    if depth_cutoff==True:
+        fp_salt = 'ls3k_salt_content_'+run+'_'+str(depth_lim)+'.nc'
+    else:
+        fp_salt = 'ls3k_salt_content_'+run+'.nc'
+    DS['salt_content'].sum(['deptht','y_grid_T','x_grid_T']).to_netcdf(fp_salt)
 
     print('Completed: Salt content saved for ' + run)
 
 if __name__ == '__main__':
     for run in ['EPM151','EPM152','EPM155','EPM156','EPM157','EPM158']:
-        heat_and_salt_content(run)
+        heat_and_salt_content(run, depth_cutoff=True, depth_lim=400)

@@ -67,9 +67,9 @@ def ANHA4_xsection_maker(run, date):
     start = (vertices_lat[0], vertices_lon[0])  # Starting point
     end = (vertices_lat[1], vertices_lon[1])  # Ending end
     # Getting "steps" number of points on the path between start and end
-    path = geodesic(wgs84, start, end, steps=160)
+    path = geodesic(wgs84, start, end, steps=1000)
     # Note 40 is a rough guess at the number of cells spanning the Lab Sea
-    # With 160 steps, I believe there would be a good representation of
+    # With 1000 steps, I believe there would be an excellent representation of
     # the coarse-ness of the 1/4-deg grid
 
     # Getting the cross section (i.e., values at each point on the

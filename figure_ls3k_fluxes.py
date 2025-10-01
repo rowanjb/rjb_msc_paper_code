@@ -257,9 +257,9 @@ def ls3k_plot_barh_diffs():
     # Objects to loop over
     bar_labels = (  # Will finish in Inkscape
         "Tides",  # CGRF
-        "SMLEs",  # CGRF
+        "MLEp",  # CGRF
         "Tides",  # ERA-I
-        "SMLEs"  # ERA-I
+        "MLEp"  # ERA-I
     )
     runs = [  # We want to look at:
         (EPM151, EPM157),  # tides minus control (CGRF)
@@ -1004,9 +1004,9 @@ def ls3k_plot_volume_fluxes():
         'WGC, 0-400 m',
         'LC, 0-400 m',
         'Tides\nCGRF',
-        'SMLEs\nCGRF',
+        'MLEp\nCGRF',
         'Tides\nERA-I',
-        'SMLEs\nERA-I',
+        'MLEp\nERA-I',
         'WGC, 400 m-bottom',
         'LC, 400 m-bottom'
     ]

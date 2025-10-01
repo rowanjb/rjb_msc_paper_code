@@ -117,7 +117,7 @@ def contents_figure():
     )
     ax2.set_xticks(
         [0.5, 2.5, 4.5],
-        ['Control', 'Tides', 'Tides\nMLEs'], rotation=0, fontsize=9)
+        ['Control', 'Tides', 'Tides\nMLEp'], rotation=0, fontsize=9)
     ax2.yaxis.set_tick_params(labelsize=9)
     ax2.set_title(
         r'10-yr mean',
@@ -222,7 +222,7 @@ def contents_figure():
     )
     ax4.set_title('')
     ax4.set_xticks([0.5, 2.5, 4.5],
-                   ['Control', 'Tides', 'Tides\nMLEs'], rotation=0, fontsize=9)
+                   ['Control', 'Tides', 'Tides\nMLEp'], rotation=0, fontsize=9)
     ax4.set_ylim(47.5, 50.75)
     ax4.yaxis.set_tick_params(labelsize=9)
     labls = [

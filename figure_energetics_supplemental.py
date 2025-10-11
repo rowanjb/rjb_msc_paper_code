@@ -154,7 +154,7 @@ def energetics_plot():
     )
 
     # Legend
-    labels = [' 0-400 m  ', ' 400 m-bottom']
+    labels = [' 0-400 m  ', ' 400 m-2,000 m']
     lines = [
         plt.Rectangle((0, 0), 1, 1, fill=True, edgecolor=colours[0],
                       facecolor='none', alpha=0.7, lw=1.5),

@@ -300,7 +300,7 @@ def energy(calc_type,run,d,window=21):
         print('Calculating T2 conversion for '+run+' down to '+str(d)+' m')
         
         # Rate of energy conversion from eddy available potential energy to mean availabile potential energy
-        # Actually, I think it goes the other direction (Rieck + Gou disagree with Von Storch on the direction)
+        # Actually, I think here it goes the other direction (Rieck + Gou have annoyingly different notation from Von Storch on the direction)
         # See eq "BC" from Gou et al. --- Variability of Eddy Formation...
 
         # Need to get buoyancy frequency, so need thickness of w-cells, i.e., vertical distance from t-point to t-point

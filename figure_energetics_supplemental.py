@@ -55,7 +55,7 @@ def energetics_plot():
     dtype_long = [
         'EKE\n'+r'($TJ$)',
         'MAPE\n'+r'$\downarrow$'+'\nMKE\n'+r'($TW$)',
-        'EAPE\n'+r'$\downarrow$'+'\nMAPE\n'+r'($GW$)',  # BC
+        'MAPE\n'+r'$\downarrow$'+'\nEAPE\n'+r'($GW$)',  # BC
         'EAPE\n'+r'$\downarrow$'+'\nEKE\n'+r'($GW$)',
         'MKE\n'+r'$\downarrow$'+'\nEKE\n'+r'($MW$)',  # BT
     ]

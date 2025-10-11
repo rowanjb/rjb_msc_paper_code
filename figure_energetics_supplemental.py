@@ -101,7 +101,7 @@ def energetics_plot():
             p = ax.violinplot(
                 df,
                 showextrema=False,
-                showmedians=True,
+                showmeans=True,
                 widths=0.9
             )
             for npc, pc in enumerate(p['bodies']):
@@ -110,7 +110,7 @@ def energetics_plot():
                 pc.set_linewidth(1.5)
                 pc.set_alpha(0.7)
                 # pc.set_linestyle(ls[npc])
-            p['cmedians'].set_colors(colours[nd])
+            p['cmeans'].set_colors(colours[nd])
             ax.set_ylim(ylims[n])
             ax.text(
                 0.05,

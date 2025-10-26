@@ -104,8 +104,8 @@ def plot_MLDs_supplemental_figure():
             'EPM158': 'ERAI-C',
             'EPM151': 'CGRF-T',
             'EPM152': 'ERAI-T',
-            'EPM155': 'CGRF-TS',
-            'EPM156': 'ERAI-TS'
+            'EPM155': 'CGRF-TM',
+            'EPM156': 'ERAI-TM'
         }
         label = run_dict[run]+'\nMean: '+str(round(float(mean_diff), 2))+' m'
         ax.text(

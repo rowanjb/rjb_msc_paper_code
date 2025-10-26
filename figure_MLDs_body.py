@@ -303,10 +303,10 @@ def plot_MLDs_body_figure():
 
     plt_mini_map('EPM157', r'CGRF-C', ax2, 'b')
     plt_mini_map('EPM151', r'CGRF-T', ax3, 'c')
-    plt_mini_map('EPM155', r'CGRF-TS', ax4, 'd')
+    plt_mini_map('EPM155', r'CGRF-TM', ax4, 'd')
     plt_mini_map('EPM158', r'ERAI-C', ax5, 'e')
     plt_mini_map('EPM152', r'ERAI-T', ax6, 'f')
-    p = plt_mini_map('EPM156', r'ERAI-TS', ax7, 'g')
+    p = plt_mini_map('EPM156', r'ERAI-TM', ax7, 'g')
 
     # Adding a colorbar for the maps
     axins = inset_axes(

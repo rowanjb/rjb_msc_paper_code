@@ -143,7 +143,7 @@ def mle_plot():
     # Dealing with legends
     ax3.legend(
         title='$Ψ$',
-        labels=['CGRF-TS', 'ERAI-TS'],
+        labels=['CGRF-TM', 'ERAI-TM'],
         loc='upper left',
         shadow=True,
         bbox_to_anchor=(0.1, 0, 1., 1),
@@ -151,7 +151,7 @@ def mle_plot():
     )
     ax3_twin.legend(
         title='MLD',
-        labels=['CGRF-TS', 'ERAI-TS'],
+        labels=['CGRF-TM', 'ERAI-TM'],
         shadow=True,
         loc='upper right',
         fontsize=9
@@ -205,7 +205,7 @@ def mle_plot():
     for spine in ax4.spines.values():
         spine.set_zorder(120)
 
-    # Plotting maps (CGRF-TS)
+    # Plotting maps (CGRF-TM)
     run = 'EPM155'
     path = 'MLE_psi_max_map_' + run + '.nc'
     uber_ds = xr.open_dataset(path)
@@ -236,7 +236,7 @@ def mle_plot():
         norm=colors.SymLogNorm(linthresh=1, linscale=1, vmin=0, vmax=100),
         rasterized=True
     )
-    ax1.set_title(r'CGRF-TS: 2016 maximum $Ψ$', fontdict={'fontsize': 12})
+    ax1.set_title(r'CGRF-TM: 2016 maximum $Ψ$', fontdict={'fontsize': 12})
     ax1.text(
         0.115,
         0.95,
@@ -280,7 +280,7 @@ def mle_plot():
         cmap='viridis',
         norm=colors.SymLogNorm(linthresh=1, linscale=1, vmin=0, vmax=100),
         rasterized=True)
-    ax2.set_title(r'ERAI-TS: 2016 maximum $Ψ$', fontdict={'fontsize': 12})
+    ax2.set_title(r'ERAI-TM: 2016 maximum $Ψ$', fontdict={'fontsize': 12})
     ax2.text(
         0.115,
         0.95,

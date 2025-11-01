@@ -765,6 +765,9 @@ def ls3k_plot_volume_fluxes():
     EPM157 = xr.open_dataset('ls3k_fluxes_plotting_EPM157.nc')
     EPM158 = xr.open_dataset('ls3k_fluxes_plotting_EPM158.nc')
 
+    # Illustrates that the box styles are correct
+    print(EPM155['vol_flux_irminger_depth'].mean().values)
+
     areas = xr.open_dataset('masks/ls3k_flux_face_hzdims.nc')
     areas['z'] = EPM151['deptht'].values
     areas = areas.rename({'z': 'deptht'})

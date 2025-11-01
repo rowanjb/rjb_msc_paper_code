@@ -173,7 +173,7 @@ def mle_plot():
     )
     ax4.set_title('6-year mean $Ψ$', fontdict={'fontsize': 12})
     ax4.set_ylabel('$Ψ$ ($m^2$ $s^{-1}$)', fontdict={'fontsize': 12})
-    ax4.set_xticks([0, 1], ['CGRF\n-TS', 'ERAI\n-TS'], rotation=0)
+    ax4.set_xticks([0, 1], ['CGRF\n-TM', 'ERAI\n-TM'], rotation=0)
     ax4.ticklabel_format(style='sci', axis='y', scilimits=(0, 0))
     ax4.yaxis.grid(True, linewidth=1, alpha=0.75)
     ax4.xaxis.set_tick_params(labelsize=9)

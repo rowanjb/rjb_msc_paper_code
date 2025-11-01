@@ -847,7 +847,7 @@ def ls3k_plot_volume_fluxes():
         ax.grid(visible=True, axis='both', which='both',
                 color='grey', lw=1, alpha=0.75, zorder=-10)
         ax.set_ylim(ylims[nax])
-        ax.set_ylabel("")        
+        ax.set_ylabel("")
         ax.set_xlabel("")
         if ax in [ax1, ax2]:
             ax.set_xticklabels([])
@@ -900,7 +900,7 @@ def ls3k_plot_volume_fluxes():
         vertices = []
         data = []
         for nid, id in enumerate(da['ids'].values):
-            if nid == 0: 
+            if nid == 0:
                 x0 = 0
             else:
                 x0 = da['dists'].isel(ids=nid-1)
@@ -933,32 +933,32 @@ def ls3k_plot_volume_fluxes():
             plt.Rectangle(
                 (da['dists'].isel(ids=65), 0),
                 da['dists'].isel(ids=120)-da['dists'].isel(ids=65), 0.355,
-                ec=c_box[0], fc="none", clip_on=False, zorder=10, lw=1.5,
-                ls=ls_box[0]
-            )
-        )
-        ax.add_patch(
-            plt.Rectangle(
-                (da['dists'].isel(ids=65), 0.445),
-                da['dists'].isel(ids=120)-da['dists'].isel(ids=65), 3.7-0.045,
-                ec=c_box[2], fc="none", clip_on=False, zorder=10, lw=1.5,
-                ls=ls_box[2]
-            )
-        )
-        ax.add_patch(
-            plt.Rectangle(
-                (da['dists'].isel(ids=180), 0),
-                da['dists'].isel(ids=230)-da['dists'].isel(ids=180), 0.355,
                 ec=c_box[1], fc="none", clip_on=False, zorder=10, lw=1.5,
                 ls=ls_box[1]
             )
         )
         ax.add_patch(
             plt.Rectangle(
-                (da['dists'].isel(ids=180), 0.445),
-                da['dists'].isel(ids=230)-da['dists'].isel(ids=180), 3.7-0.045,
+                (da['dists'].isel(ids=65), 0.445),
+                da['dists'].isel(ids=120)-da['dists'].isel(ids=65), 3.7-0.045,
                 ec=c_box[3], fc="none", clip_on=False, zorder=10, lw=1.5,
                 ls=ls_box[3]
+            )
+        )
+        ax.add_patch(
+            plt.Rectangle(
+                (da['dists'].isel(ids=180), 0),
+                da['dists'].isel(ids=230)-da['dists'].isel(ids=180), 0.355,
+                ec=c_box[0], fc="none", clip_on=False, zorder=10, lw=1.5,
+                ls=ls_box[0]
+            )
+        )
+        ax.add_patch(
+            plt.Rectangle(
+                (da['dists'].isel(ids=180), 0.445),
+                da['dists'].isel(ids=230)-da['dists'].isel(ids=180), 3.7-0.045,
+                ec=c_box[2], fc="none", clip_on=False, zorder=10, lw=1.5,
+                ls=ls_box[2]
             )
         )
         ax.grid(visible=True, axis='both', which='both',

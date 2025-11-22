@@ -266,7 +266,7 @@ def contents_figure():
 
     # Legends
     handles, labels = ax3.get_legend_handles_labels()
-    new_labels = ['CGRF-C', 'ERAI-C', 'CGRF-T', 'ERAI-T', 'CGRF-TM', 'ERAI-TM']
+    new_labels = ['GDPS-C', 'ERAI-C', 'GDPS-T', 'ERAI-T', 'GDPS-TM', 'ERAI-TM']
     ax3.legend(
         handles=handles,
         labels=new_labels,
@@ -276,7 +276,7 @@ def contents_figure():
         shadow=True,
         fontsize=9
     )
-    labels = ['CGRF', 'ERA-I']
+    labels = ['GDPS', 'ERA-I']
     hatches = ['', "///"]
     handles = []
     for n, _ in enumerate(labels):
@@ -562,7 +562,7 @@ def contents_figure_400():
 
     # Legends
     handles, labels = ax3.get_legend_handles_labels()
-    new_labels = ['CGRF-C', 'ERAI-C', 'CGRF-T', 'ERAI-T', 'CGRF-TM', 'ERAI-TM']
+    new_labels = ['GDPS-C', 'ERAI-C', 'GDPS-T', 'ERAI-T', 'GDPS-TM', 'ERAI-TM']
     ax3.legend(
         handles=handles,
         labels=new_labels,
@@ -572,7 +572,7 @@ def contents_figure_400():
         shadow=True,
         fontsize=9
     )
-    labels = ['CGRF', 'ERA-I']
+    labels = ['GDPS', 'ERA-I']
     hatches = ['', "///"]
     handles = []
     for n, _ in enumerate(labels):

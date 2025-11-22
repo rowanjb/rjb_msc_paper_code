@@ -256,14 +256,14 @@ def ls3k_plot_barh_diffs():
 
     # Objects to loop over
     bar_labels = (  # Will finish in Inkscape
-        "Tides",  # CGRF
-        "MLEp",  # CGRF
+        "Tides",  # GDPS
+        "MLEp",  # GDPS
         "Tides",  # ERA-I
         "MLEp"  # ERA-I
     )
     runs = [  # We want to look at:
-        (EPM151, EPM157),  # tides minus control (CGRF)
-        (EPM155, EPM151),  # tides and SMLEs minus tides (CGRF)
+        (EPM151, EPM157),  # tides minus control (GDPS)
+        (EPM155, EPM151),  # tides and SMLEs minus tides (GDPS)
         (EPM152, EPM158),  # tides minus control (ERAI)
         (EPM156, EPM152)  # tides and SMLEs minus tides (ERAI)
     ]
@@ -401,7 +401,7 @@ def ls3k_plot_barh_diffs():
     a1b.text(
         0.995,
         0.025,
-        'CGRF',
+        'GDPS',
         transform=a1b.transAxes,
         fontsize=9,
         fontweight='bold',
@@ -487,7 +487,7 @@ def ls3k_plot_barh_diffs():
     a2b.text(
         0.995,
         0.025,
-        'CGRF',
+        'GDPS',
         transform=a2b.transAxes,
         fontsize=9,
         fontweight='bold',
@@ -572,7 +572,7 @@ def ls3k_plot_barh_diffs():
     a3b.text(
         0.995,
         0.025,
-        'CGRF',
+        'GDPS',
         transform=a3b.transAxes,
         fontsize=9,
         fontweight='bold',
@@ -822,7 +822,7 @@ def ls3k_plot_volume_fluxes():
 
     # Plotting the time series
     runs = [EPM157, EPM158, EPM151, EPM152, EPM155, EPM156]
-    labels = ['CGRF-C', 'ERAI-C', 'CGRF-T', 'ERAI-T', 'CGRF-TM', 'ERAI-TM']
+    labels = ['GDPS-C', 'ERAI-C', 'GDPS-T', 'ERAI-T', 'GDPS-TM', 'ERAI-TM']
     colours = plt.cm.viridis([0, 0, 0.5, 0.5, 0.8, 0.8])
     c_box = ['r', 'r', 'b', 'b']
     ls_box = ['--', '-', '--', '-']
@@ -1006,8 +1006,8 @@ def ls3k_plot_volume_fluxes():
     titles = [
         'WGC, 0-400 m',
         'LC, 0-400 m',
-        'Tides\nCGRF',
-        'MLEp\nCGRF',
+        'Tides\nGDPS',
+        'MLEp\nGDPS',
         'Tides\nERA-I',
         'MLEp\nERA-I',
         'WGC, 400 m-bottom',

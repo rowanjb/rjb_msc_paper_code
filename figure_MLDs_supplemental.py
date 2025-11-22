@@ -100,11 +100,11 @@ def plot_MLDs_supplemental_figure():
             )
         )
         run_dict = {
-            'EPM157': 'CGRF-C',
+            'EPM157': 'GDPS-C',
             'EPM158': 'ERAI-C',
-            'EPM151': 'CGRF-T',
+            'EPM151': 'GDPS-T',
             'EPM152': 'ERAI-T',
-            'EPM155': 'CGRF-TM',
+            'EPM155': 'GDPS-TM',
             'EPM156': 'ERAI-TM'
         }
         label = run_dict[run]+'\nMean: '+str(round(float(mean_diff), 2))+' m'

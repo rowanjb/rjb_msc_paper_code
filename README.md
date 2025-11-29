@@ -1,5 +1,7 @@
 # Code relating to my MSc and the associated paper
 
+[![DOI](https://zenodo.org/badge/1022702944.svg)](https://doi.org/10.5281/zenodo.17761255)
+
 This repo represents the majority of my MSc research and all code related to my ''main'' MSc paper.
 It's cloned on both Graham/Nibi (Alliance Can) and on Wessex/Carthage (UAlberta HPC).
 (Hence some functions are meant to be run on Graham and others on Carthage!)

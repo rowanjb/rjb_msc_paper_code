@@ -143,7 +143,7 @@ def mle_plot():
     # Dealing with legends
     ax3.legend(
         title='$Ψ$',
-        labels=['GDPS-TM', 'ERAI-TM'],
+        labels=['GDPS-TS', 'ERAI-TS'],
         loc='upper left',
         shadow=True,
         bbox_to_anchor=(0.1, 0, 1., 1),
@@ -151,7 +151,7 @@ def mle_plot():
     )
     ax3_twin.legend(
         title='MLD',
-        labels=['GDPS-TM', 'ERAI-TM'],
+        labels=['GDPS-TS', 'ERAI-TS'],
         shadow=True,
         loc='upper right',
         fontsize=9
@@ -173,7 +173,7 @@ def mle_plot():
     )
     ax4.set_title('6-year mean $Ψ$', fontdict={'fontsize': 12})
     ax4.set_ylabel('$Ψ$ ($m^2$ $s^{-1}$)', fontdict={'fontsize': 12})
-    ax4.set_xticks([0, 1], ['GDPS\n-TM', 'ERAI\n-TM'], rotation=0)
+    ax4.set_xticks([0, 1], ['GDPS\n-TS', 'ERAI\n-TS'], rotation=0)
     ax4.ticklabel_format(style='sci', axis='y', scilimits=(0, 0))
     ax4.yaxis.grid(True, linewidth=1, alpha=0.75)
     ax4.xaxis.set_tick_params(labelsize=9)
@@ -205,7 +205,7 @@ def mle_plot():
     for spine in ax4.spines.values():
         spine.set_zorder(120)
 
-    # Plotting maps (GDPS-TM)
+    # Plotting maps (GDPS-TS)
     run = 'EPM155'
     path = 'MLE_psi_max_map_' + run + '.nc'
     uber_ds = xr.open_dataset(path)
@@ -236,7 +236,7 @@ def mle_plot():
         norm=colors.SymLogNorm(linthresh=1, linscale=1, vmin=0, vmax=100),
         rasterized=True
     )
-    ax1.set_title(r'GDPS-TM: 2016 maximum $Ψ$', fontdict={'fontsize': 12})
+    ax1.set_title(r'GDPS-TS: 2016 maximum $Ψ$', fontdict={'fontsize': 12})
     ax1.text(
         0.115,
         0.95,
@@ -280,7 +280,7 @@ def mle_plot():
         cmap='viridis',
         norm=colors.SymLogNorm(linthresh=1, linscale=1, vmin=0, vmax=100),
         rasterized=True)
-    ax2.set_title(r'ERAI-TM: 2016 maximum $Ψ$', fontdict={'fontsize': 12})
+    ax2.set_title(r'ERAI-TS: 2016 maximum $Ψ$', fontdict={'fontsize': 12})
     ax2.text(
         0.115,
         0.95,

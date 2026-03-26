@@ -11,7 +11,7 @@ import cartopy.feature as feature
 
 def ANHA4_sections():
     """Creates example cross section figures showing isopycnals and the
-    MLE SF."""
+    SMLE SF."""
 
     print("Beginning: Cross section calculations")
 
@@ -182,7 +182,7 @@ def ANHA4_sections():
         orientation='horizontal',
         format='%.1f')
     cb.ax.set_title(
-        r"Cross-sections of the MLEp streamfunction, $\Psi$",
+        r"Cross-sections of the SMLEp streamfunction, $\Psi$",
         fontsize=12)
     cbar_ax = fig.add_axes([0.15, 0.73, 0.5, 0.025])
     cb = fig.colorbar(

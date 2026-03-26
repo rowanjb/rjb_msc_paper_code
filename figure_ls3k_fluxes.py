@@ -257,9 +257,9 @@ def ls3k_plot_barh_diffs():
     # Objects to loop over
     bar_labels = (  # Will finish in Inkscape
         "Tides",  # GDPS
-        "MLEp",  # GDPS
+        "SMLEp",  # GDPS
         "Tides",  # ERA-I
-        "MLEp"  # ERA-I
+        "SMLEp"  # ERA-I
     )
     runs = [  # We want to look at:
         (EPM151, EPM157),  # tides minus control (GDPS)
@@ -822,7 +822,7 @@ def ls3k_plot_volume_fluxes():
 
     # Plotting the time series
     runs = [EPM157, EPM158, EPM151, EPM152, EPM155, EPM156]
-    labels = ['GDPS-C', 'ERAI-C', 'GDPS-T', 'ERAI-T', 'GDPS-TM', 'ERAI-TM']
+    labels = ['GDPS-C', 'ERAI-C', 'GDPS-T', 'ERAI-T', 'GDPS-TS', 'ERAI-TS']
     colours = plt.cm.viridis([0, 0, 0.5, 0.5, 0.8, 0.8])
     c_box = ['r', 'r', 'b', 'b']
     ls_box = ['--', '-', '--', '-']
@@ -1007,9 +1007,9 @@ def ls3k_plot_volume_fluxes():
         'WGC, 0-400 m',
         'LC, 0-400 m',
         'Tides\nGDPS',
-        'MLEp\nGDPS',
+        'SMLEp\nGDPS',
         'Tides\nERA-I',
-        'MLEp\nERA-I',
+        'SMLEp\nERA-I',
         'WGC, 400 m-bottom',
         'LC, 400 m-bottom'
     ]

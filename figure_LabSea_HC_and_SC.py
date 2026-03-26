@@ -117,7 +117,7 @@ def contents_figure():
     )
     ax2.set_xticks(
         [0.5, 2.5, 4.5],
-        ['Control', 'Tides', 'Tides\nMLEp'], rotation=0, fontsize=9)
+        ['Control', 'Tides', 'Tides\nSMLEp'], rotation=0, fontsize=9)
     ax2.yaxis.set_tick_params(labelsize=9)
     ax2.set_title(
         r'10-yr mean',
@@ -222,7 +222,7 @@ def contents_figure():
     )
     ax4.set_title('')
     ax4.set_xticks([0.5, 2.5, 4.5],
-                   ['Control', 'Tides', 'Tides\nMLEp'], rotation=0, fontsize=9)
+                   ['Control', 'Tides', 'Tides\nSMLEp'], rotation=0, fontsize=9)
     ax4.set_ylim(47.5, 50.75)
     ax4.yaxis.set_tick_params(labelsize=9)
     labls = [
@@ -266,7 +266,7 @@ def contents_figure():
 
     # Legends
     handles, labels = ax3.get_legend_handles_labels()
-    new_labels = ['GDPS-C', 'ERAI-C', 'GDPS-T', 'ERAI-T', 'GDPS-TM', 'ERAI-TM']
+    new_labels = ['GDPS-C', 'ERAI-C', 'GDPS-T', 'ERAI-T', 'GDPS-TS', 'ERAI-TS']
     ax3.legend(
         handles=handles,
         labels=new_labels,
@@ -413,7 +413,7 @@ def contents_figure_400():
     )
     ax2.set_xticks(
         [0.5, 2.5, 4.5],
-        ['Control', 'Tides', 'Tides\nMLEp'], rotation=0, fontsize=9)
+        ['Control', 'Tides', 'Tides\nSMLEp'], rotation=0, fontsize=9)
     ax2.yaxis.set_tick_params(labelsize=9)
     ax2.set_title(
         r'10-yr mean',
@@ -518,7 +518,7 @@ def contents_figure_400():
     )
     ax4.set_title('')
     ax4.set_xticks([0.5, 2.5, 4.5],
-                   ['Control', 'Tides', 'Tides\nMLEp'], rotation=0, fontsize=9)
+                   ['Control', 'Tides', 'Tides\nSMLEp'], rotation=0, fontsize=9)
     ax4.set_ylim(6.5, 7.8)
     ax4.yaxis.set_tick_params(labelsize=9)
     labls = [
@@ -562,7 +562,7 @@ def contents_figure_400():
 
     # Legends
     handles, labels = ax3.get_legend_handles_labels()
-    new_labels = ['GDPS-C', 'ERAI-C', 'GDPS-T', 'ERAI-T', 'GDPS-TM', 'ERAI-TM']
+    new_labels = ['GDPS-C', 'ERAI-C', 'GDPS-T', 'ERAI-T', 'GDPS-TS', 'ERAI-TS']
     ax3.legend(
         handles=handles,
         labels=new_labels,

@@ -156,7 +156,7 @@ def plot_MLDs_body_figure():
     )
     ax1.set_xticks(
         [0.5, 2.5, 4.5, 6, 7],
-        ['Control', 'Tides', 'Tides\nMLEp', '1/60°\nmodel', 'Argo'],
+        ['Control', 'Tides', 'Tides\nSMLEp', '1/60°\nmodel', 'Argo'],
         rotation=0,
         fontsize=12
     )
@@ -303,10 +303,10 @@ def plot_MLDs_body_figure():
 
     plt_mini_map('EPM157', r'GDPS-C', ax2, 'b')
     plt_mini_map('EPM151', r'GDPS-T', ax3, 'c')
-    plt_mini_map('EPM155', r'GDPS-TM', ax4, 'd')
+    plt_mini_map('EPM155', r'GDPS-TS', ax4, 'd')
     plt_mini_map('EPM158', r'ERAI-C', ax5, 'e')
     plt_mini_map('EPM152', r'ERAI-T', ax6, 'f')
-    p = plt_mini_map('EPM156', r'ERAI-TM', ax7, 'g')
+    p = plt_mini_map('EPM156', r'ERAI-TS', ax7, 'g')
 
     # Adding a colorbar for the maps
     axins = inset_axes(

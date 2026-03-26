@@ -138,7 +138,7 @@ def biogeochem_plot():
     ax2.xaxis.set_tick_params(labelsize=9)
     ax2.set_xticks(
         [0.5, 2.5, 4.5],
-        ['Control', 'Tides', 'Tides\nMLEp'],
+        ['Control', 'Tides', 'Tides\nSMLEp'],
         rotation=0
     )
     labls = [
@@ -232,7 +232,7 @@ def biogeochem_plot():
     ax4.xaxis.set_tick_params(labelsize=9)
     ax4.set_xticks(
         [0.5, 2.5, 4.5],
-        ['Control', 'Tides', 'Tides\nMLEp'],
+        ['Control', 'Tides', 'Tides\nSMLEp'],
         rotation=0
     )
     labls = [

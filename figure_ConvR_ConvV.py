@@ -135,7 +135,7 @@ def plot_stratification_figure():
     )
     ax2.set_xticks(
         [0.5, 2.5, 4.5],
-        ['Control', 'Tides', 'Tides\nMLEp'],
+        ['Control', 'Tides', 'Tides\nSMLEp'],
         rotation=0,
         fontsize=9
     )
@@ -242,7 +242,7 @@ def plot_stratification_figure():
     )
     ax4.set_xticks(
         [0.5, 2.5, 4.5],
-        ['Control', 'Tides', 'Tides\nMLEp'],
+        ['Control', 'Tides', 'Tides\nSMLEp'],
         rotation=0,
         fontsize=9
     )

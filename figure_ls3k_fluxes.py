@@ -822,7 +822,7 @@ def ls3k_plot_volume_fluxes():
 
     # Plotting the time series
     runs = [EPM157, EPM158, EPM151, EPM152, EPM155, EPM156]
-    labels = ['GDPS-C', 'ERAI-C', 'GDPS-T', 'ERAI-T', 'GDPS-TM', 'ERAI-TM']
+    labels = ['GDPS-C', 'ERAI-C', 'GDPS-T', 'ERAI-T', 'GDPS-TS', 'ERAI-TS']
     colours = plt.cm.viridis([0, 0, 0.5, 0.5, 0.8, 0.8])
     c_box = ['r', 'r', 'b', 'b']
     ls_box = ['--', '-', '--', '-']

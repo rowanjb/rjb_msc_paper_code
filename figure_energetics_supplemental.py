@@ -49,7 +49,7 @@ def energetics_plot():
     # Plotting in a loop!
     axes = [ax1, ax2, ax3, ax4, ax5]
     runs = ['EPM157', 'EPM158', 'EPM151', 'EPM152', 'EPM155', 'EPM156']
-    names = [' ', 'GDPS-C', 'ERAI-C', 'GDPS-T', 'ERAI-T', 'GDPS-TM', 'ERAI-TM']
+    names = [' ', 'GDPS-C', 'ERAI-C', 'GDPS-T', 'ERAI-T', 'GDPS-TS', 'ERAI-TS']
     dtype = ['EKE', 'T1', 'T2', 'T3', 'T4']
     # ls = ['-', '--', '-', '--', '-', '--']
     dtype_long = [

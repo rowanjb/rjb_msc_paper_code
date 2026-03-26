@@ -272,7 +272,7 @@ def biogeochem_plot():
 
     # Legends
     handles, labels = ax3.get_legend_handles_labels()
-    new_labels = ['GDPS-C', 'ERAI-C', 'GDPS-T', 'ERAI-T', 'GDPS-TM', 'ERAI-TM']
+    new_labels = ['GDPS-C', 'ERAI-C', 'GDPS-T', 'ERAI-T', 'GDPS-TS', 'ERAI-TS']
     ax3.legend(
         handles=handles,
         labels=new_labels,

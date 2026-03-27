@@ -2,6 +2,7 @@
 
 import pandas as pd
 import xarray as xr
+import numpy as np
 from datetime import datetime as dt
 from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 from functools import reduce
@@ -132,12 +133,34 @@ def plot_MLDs_body_figure():
         (df_argo.index.month > 11) | (df_argo.index.month < 5)
     ]
 
+    # == Revision: Print the stddev of the Argo mean == #
+    # See: https://math.stackexchange.com/questions/2459698/standard-
+    # deviation-of-a-mean-whose-variables-have-their-own-uncertainty
+    sd = xr.open_dataarray('ls3k_MLD_stddev_Argo.nc').to_dataframe('ArgoSD')
+    sd = sd.reset_index()
+    sd['date'] = sd['date'].astype(str)
+    sd['date'] = sd['date'].map(
+       lambda date_string: dt.strptime(date_string, '%Y-%m-%d')
+    )
+    sd = sd.rename(columns={'date': 'time_counter'})
+    sd['time_counter'] = pd.to_datetime(sd['time_counter'])
+    sd = sd.set_index('time_counter')
+    sd = sd.loc['2007-12-01':'2017-08-01']
+    sd = sd.loc[
+        (sd.index.month > 11) | (sd.index.month < 5)
+    ]
+    stddev_final = np.sqrt(np.sum(sd['ArgoSD']**2)/(len(sd['ArgoSD'])**2))
+    print("The std dev of the argo mean is: "+str(stddev_final))
+
+
     # Plotting the MLD bar charts
     means = pd.concat(
         [df.mean(axis=0),
          df_ECP017.mean(axis=0),
          df_argo.mean(axis=0)]
     )
+    print("The mean winter MLDs are: ")
+    print(means)
     colours = plt.cm.viridis([0, 0, 0.5, 0.5, 0.8, 0.8, 1, 1])
     hatches = ["", "///", "", "///", "", "///", 'x', 'x']
     means.plot.bar(

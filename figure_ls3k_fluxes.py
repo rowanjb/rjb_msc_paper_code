@@ -1068,5 +1068,5 @@ def ls3k_plot_volume_fluxes():
 
 if __name__ == "__main__":
     # create_temporary_files()
-    # ls3k_plot_barh_diffs()
+    ls3k_plot_barh_diffs()
     ls3k_plot_volume_fluxes()

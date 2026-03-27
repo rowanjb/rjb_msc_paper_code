@@ -5,6 +5,7 @@
 import xarray as xr
 from datetime import datetime
 import gsw
+import numpy as np
 
 
 def convective_resistance(run):
@@ -227,6 +228,16 @@ def MLD_Argo(region="LabSea"):
     #    (2) 10-yr time series of mean MLD in a masked region in the
     #        interior Lab Sea.
 
+    # == Revision: Calculate uncertainty in Argo mean == #
+    DS['num_profs'] = DS['num_profiles'].where(DS['num_profiles'] > 0)
+    DS['std_devs'] = 72/(DS['num_profs']**0.5)
+    # https://docs.xarray.dev/en/stable/generated/
+    # xarray.core.groupby.DataArrayGroupBy.map.html
+    def std_dev_ufunc(da):
+        nbins = xr.where(da>0, 1, 0)  # sum to get yearly num bins
+        return np.sqrt((da**2).sum('date')/nbins.sum('date')**2)
+    # Note it gets applied below
+
     # (1) Starting with full domain maps of yearly mean and max MLD
     DS['da_mld'] = DS['da_mld'].where(DS['da_mld'] != 0)
     Argo_MLD_maps = DS['da_mld'].groupby('date.year').max(
@@ -235,6 +246,7 @@ def MLD_Argo(region="LabSea"):
     Argo_MLD_maps['yearly_mean'] = DS['da_mld'].groupby('date.year').mean(
         dim=['date'], skipna=True
     )
+    Argo_MLD_maps['std_dev'] = DS['std_devs'].groupby('date.year').map(std_dev_ufunc)
     Argo_MLD_maps.to_netcdf('MLD_yearly_maps_'+region+'_domain_Argo.nc')
     print('Saved: Argo MLD yearly maps')
 
@@ -242,17 +254,33 @@ def MLD_Argo(region="LabSea"):
     if region == "LabSea":
         # In this case we also want a time series    
         DS = DS.where(DS['mask'] == 1, drop=True)
+        DS = DS.where(DS['num_profiles'] > 0)
         areas = DS.e1t*DS.e2t
         avgArea = areas.mean(dim=['y', 'x'])
         weights = areas/avgArea
         weights = weights.fillna(0)
+
+        # == Revision: Calculate uncertainty in Argo mean == #
+        # From Holte and Talley (2009), the std dev associated with 
+        # the density algorithm method is 72 dbar. Since we know
+        # the count in each grid cell, the std dev of the resultant
+        # mld is 72/sqrt(N) 
+        stddev = 72/np.sqrt(DS['num_profiles'])
+        # Now we want the mean in x and y, and the difficulty
+        # arises from (1) having different std dev in each cell
+        # and (2) having different size cells. We address both below
+        # by using the square of each stddev and using area weights.
+        stddev_final = (stddev**2)*(areas**2)
+        stddev_final = np.sqrt(stddev_final.sum(dim=['y', 'x'])/areas.sum(dim=['y', 'x'])**2)
+        stddev_final.to_netcdf('ls3k_MLD_stddev_Argo.nc')
+        print(stddev_final.to_numpy())
+
         MLD = DS['da_mld']
         MLD = MLD.where(MLD != 0)
         MLD = MLD.weighted(weights)
         avgMLD_region = MLD.mean(dim=['y', 'x'], skipna=True)
         avgMLD_region.to_netcdf('ls3k_MLD_mean_Argo.nc')
         print('Saved: MLD time series analyses for Argo')
-
     print('Completed: Stratification analyses for Argo')
 
 
@@ -343,3 +371,4 @@ if __name__ == '__main__':
         #MLD(run)
     #MLD_LAB60()
     MLD_Argo('NorthAtlantic')
+    #MLD_Argo('LabSea')

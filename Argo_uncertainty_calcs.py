@@ -136,7 +136,7 @@ def compare_to_ANHA4(run):
     mask = xr.open_dataarray('masks/mask_LS_3000.nc').astype(int)
 
     # Text file of paths to non-empty model output
-    gridT_txt = '../filepaths/'+run+'_gridT_filepaths.txt'
+    gridT_txt = '../filepaths/'+run+'_gridT_filepaths_jul2025.txt'
 
     # Open the text files and get lists of the .nc output filepaths
     with open(gridT_txt) as f:
@@ -181,6 +181,6 @@ def compare_to_ANHA4(run):
 
 if __name__ == "__main__":
     #calc_Argo_uncertainty()
-    for run in ["EPM151", "EPM152", "EPM155", "EPM156"]:
+    for run in ["EPM157", "EPM158"]:
         compare_to_ANHA4(run)
 

@@ -96,9 +96,6 @@ def regrid_Argo(region="LabSea"):
     ARGO = ARGO.assign_coords({'date': datecoord})
 
     # Init the important variables
-    # Revision: Calculate uncertainties in Argo data
-    # https://math.stackexchange.com/questions/2148877/iterative-calculation-
-    # of-mean-and-standard-deviation
     for var in ['da_mld', 'dt_mld', 'num_profiles']:  # Initializing mld vars
         ARGO[var] = (
             ['y', 'x', 'date'],
@@ -111,7 +108,6 @@ def regrid_Argo(region="LabSea"):
 
     # Looping through and populating ARGO output dataset, slow but works
     print("Beginning loop through Argo points")
-    mld_check = []  # For checking MLDs and the unweighted std dev
     for i in range(ds.sizes['iNPROF']):  # Go through each Argo data point
         
         # Load the lat-lon coordinate for the Argo data point
@@ -148,19 +144,12 @@ def regrid_Argo(region="LabSea"):
             ARGO[mld].loc[
                 dict(x=idx, y=idy, date=dtdates[i])
             ] = (old_value*count + ds[mld][i])/(count+1)
-            if mld == 'da_mld':
-                mld_check.append(ds[mld][i].to_numpy())
         # Incrementing the count to keep track of any cells and dates with
         # multiple data points
         ARGO['num_profiles'].loc[dict(x=idx, y=idy, date=dtdates[i])] += 1
         print(str(dtdates[i]) + ' done')
 
     # Save
-    print("Mean "+region+" MLD: "+str(np.mean(mld_check)))
-    print("Num profs: "+str(len(mld_check)))
-    print("Uncertainty/std dev: "+str(72/np.sqrt(len(mld_check))))
-    print('Max profiles in one cell at one time: ' +
-          str(ARGO.num_profiles.max().to_numpy()))
     ARGO.to_netcdf('Argo_mld_ANHA4_'+region+'.nc')
     print('Argo MLD data saved for the '+region)
     # Note if the region is the whole NA, the resultant file is around 7G

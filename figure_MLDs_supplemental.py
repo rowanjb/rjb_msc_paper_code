@@ -135,25 +135,6 @@ def plot_MLDs_supplemental_figure():
     argo = ds_argo['yearly_mean'].mean(dim='year')
     std_dev = ds_argo['std_dev']
 
-    # == Revision: Calc the standard dev == #
-    std_dev = std_dev.where(
-        (std_dev.nav_lat_grid_T < nlat) &
-        (std_dev.nav_lat_grid_T > slat) &
-        (std_dev.nav_lon_grid_T > wlon) &
-        (std_dev.nav_lon_grid_T < elon)
-    )
-    mesh = xr.open_dataset('masks/ANHA4_mesh_mask.nc')
-    mesh = mesh.isel(t=0).rename({'y': 'y_grid_T', 'x': 'x_grid_T'})
-    areas = mesh['e1t']*mesh['e2t']
-    areas = areas.where(std_dev.sum('year') > 0)  # cheeky mask
-    nbins = xr.where(std_dev > 0, 1, 0).sum('year')
-    std_dev = ((std_dev**2).sum('year')/nbins**2)**0.5
-    stddev_final = (std_dev**2)*(areas**2)
-    area = areas.sum(dim=['y_grid_T', 'x_grid_T'])
-    stddev_final = (stddev_final.sum(dim=['y_grid_T', 'x_grid_T'])/area**2)**0.5
-    print("Std dev of the Argo mean: " + str(stddev_final.to_numpy()) + ' dbar')
-    quit()
-
     # Masking the argo data because we don't want too close to the boundaries
     argo = argo.where(
         (argo.nav_lat_grid_T < nlat) &

@@ -161,12 +161,17 @@ def compare_to_ANHA4(run):
     mask = xr.open_dataarray('masks/mask_LS_3000.nc').astype(int)
 
     # Text file of paths to non-empty model output
-    gridT_txt = '../filepaths/'+run+'_gridT_filepaths.txt'#_jul2025.txt'
+    gridT_txt_nibi = '../filepaths/'+run+'_gridT_filepaths_jul2025.txt'
+    gridT_txt = '../filepaths/'+run+'_gridT_filepaths.txt'
 
     # Open the text files and get lists of the .nc output filepaths
-    with open(gridT_txt) as f:
-        lines = f.readlines()
-    filepaths_gridT = [line.strip() for line in lines][1000:1010]
+    try:
+        with open(gridT_txt_nibi) as f:
+            lines = f.readlines()
+    except FileNotFoundError:
+        with open(gridT_txt) as f:
+            lines = f.readlines()
+    filepaths_gridT = [line.strip() for line in lines]
 
     # Open the files and look at e3t and votemper
     preprocess_gridT = lambda ds: ds[['somxlts']]
@@ -175,9 +180,10 @@ def compare_to_ANHA4(run):
     # Add horizontal cell dims
     DS[['e1t', 'e2t']] = e1t, e2t
 
-    # Find nearest model data
+    # Find nearest model data and save it
     mld = []
     tc = []
+    print("Identifying model points")
     for i in ARGO['iNPROF'].to_numpy():
         argo_date = ARGO['date'].sel(iNPROF=i)
         argox = int(ARGO['gridx'].sel(iNPROF=i).data)
@@ -195,11 +201,18 @@ def compare_to_ANHA4(run):
             time_counter=argo_date,
             method='nearest',
         ).item())
-    print(tc)
-    print(tc[5])
-    print(ARGO['mld'].sel(iNPROF=i).data, mld[-1])
+        print(ARGO['mld'].sel(iNPROF=i).to_numpy(), mld[-1])
     ARGO[run] = (["iNPROF"], mld)
     ARGO['time_counter'] = (["iNPROF"], tc)
+
+    # Now we also want the pseudo monthly climatology
+    print("Calculating 2008--2018 climatology")
+    da = DS['somxlts'].sel(
+        time_counter=slice(
+            DatetimeNoLeap(2008, 1, 1),
+            DatetimeNoLeap(2018, 1, 1)
+        )).groupby('time_counter.month').mean('time_counter')
+    ARGO['mld_clim'] = da
     ARGO.to_netcdf("Argo_mld_LabSea_"+run+".nc")
 
 

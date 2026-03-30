@@ -147,6 +147,7 @@ def compare_to_ANHA4(run):
     # holte and talley 2009) along with some nice discussion.
 
     # Open the Argo data
+    print("Opening Argo dataset")
     ARGO = xr.open_dataset("Argo_mld_LabSea.nc")
 
     # Open the ANHA4 data in the normal way
@@ -174,6 +175,7 @@ def compare_to_ANHA4(run):
     filepaths_gridT = [line.strip() for line in lines]
 
     # Open the files and look at e3t and votemper
+    print("Opening "+run+" dataset")
     preprocess_gridT = lambda ds: ds[['somxlts']]
     DS = xr.open_mfdataset(filepaths_gridT, preprocess=preprocess_gridT)
 

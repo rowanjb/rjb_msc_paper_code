@@ -7,9 +7,11 @@
 
 import xarray as xr
 import numpy as np
+import pandas as pd
 from datetime import datetime as dt
 from datetime import timedelta as td
 from cftime import DatetimeNoLeap
+
 
 def calc_Argo_uncertainty():
     """Calculates the uncertainty relating to Argo-based mean MLDs.
@@ -35,12 +37,12 @@ def calc_Argo_uncertainty():
     # Getting the ARGO date and grid locagion
     # Jan 1, year 1 (need to subtract 365 w/r/t profiledate, which measures
     # from year 0)
-    start_dt = DatetimeNoLeap(1, 1, 1, 0, 0, 0)
+    start_dt = dt(1, 1, 1, 0, 0, 0)
     profiledates = ds.profiledate.to_numpy()  # days from Jan 1, year 0
 
-    # Function for converting to dt objects:
+    # Function for converting to Timestamp objects:
     def dtdate(d):
-        return start_dt + td(days=(d-365))
+        return (start_dt + td(days=(d-365)))
     dtdates = [dtdate(d) for d in profiledates]
 
     # Loading into memory
@@ -91,6 +93,7 @@ def calc_Argo_uncertainty():
                 gridy.append(idy)
                 date.append(dtdates[i])
                 iNPROF.append(i)
+                print(ds['da_mld'].sel(iNPROF=i).data)
 
     # Initializing output dataset
     ARGO = xr.Dataset(
@@ -112,6 +115,21 @@ def calc_Argo_uncertainty():
             source = "https://mixedlayer.ucsd.edu",
         ),
     )
+
+    # Turns out we actually need cftime
+    ARGO = ARGO.where(  # Drop Feb 29
+        ~((ARGO['date'].dt.month == 2) & (ARGO['date'].dt.day == 29)),
+        drop=True
+    )
+    date = []
+    for d in ARGO['date'].to_numpy():
+        d = pd.Timestamp(d)
+        date.append(DatetimeNoLeap(
+            d.year, d.month, d.day, d.hour, d.minute, d.second, d.microsecond
+        ))
+    ARGO['date'] = (['iNPROF'], date)
+
+    # Save
     ARGO.to_netcdf("Argo_mld_LabSea.nc")
     print("File saved")
 
@@ -120,6 +138,13 @@ def compare_to_ANHA4(run):
     """Since we have the individual float data in the interior Lab Sea,
     we can compare to the nearest neighbour ANHA4 points and compute
     some statistics."""
+    # Note to future rowan: in addition to the final nc's having the
+    # below time series, also create a monthly 2008-2018 "climatology"
+    # against which you can calc differences from Argo. Between these
+    # two and the mean/std dev of the basic Argo LabSea nc, you can
+    # use the old MLD figures (but change the source of the 221 m to
+    # the correct source) and maybe add a table of statistics (like
+    # holte and talley 2009) along with some nice discussion.
 
     # Open the Argo data
     ARGO = xr.open_dataset("Argo_mld_LabSea.nc")
@@ -136,12 +161,12 @@ def compare_to_ANHA4(run):
     mask = xr.open_dataarray('masks/mask_LS_3000.nc').astype(int)
 
     # Text file of paths to non-empty model output
-    gridT_txt = '../filepaths/'+run+'_gridT_filepaths_jul2025.txt'
+    gridT_txt = '../filepaths/'+run+'_gridT_filepaths.txt'#_jul2025.txt'
 
     # Open the text files and get lists of the .nc output filepaths
     with open(gridT_txt) as f:
         lines = f.readlines()
-    filepaths_gridT = [line.strip() for line in lines]#[1000:1010]
+    filepaths_gridT = [line.strip() for line in lines][1000:1010]
 
     # Open the files and look at e3t and votemper
     preprocess_gridT = lambda ds: ds[['somxlts']]
@@ -154,12 +179,12 @@ def compare_to_ANHA4(run):
     mld = []
     tc = []
     for i in ARGO['iNPROF'].to_numpy():
-        Argo_date = ARGO['date'].sel(iNPROF=i)
-        argox = ARGO['gridx'].sel(iNPROF=i)
-        argoy = ARGO['gridy'].sel(iNPROF=i)
+        argo_date = ARGO['date'].sel(iNPROF=i)
+        argox = int(ARGO['gridx'].sel(iNPROF=i).data)
+        argoy = int(ARGO['gridy'].sel(iNPROF=i).data)
         mld.append(
             DS["somxlts"].sel(
-            time_counter=Argo_date,
+            time_counter=argo_date,
             method='nearest',
         ).sel(
             x_grid_T=argox,
@@ -167,10 +192,9 @@ def compare_to_ANHA4(run):
         ).to_numpy())
         tc.append(
             DS["time_counter"].sel(
-            time_counter=Argo_date,
+            time_counter=argo_date,
             method='nearest',
         ).item())
-    
     print(tc)
     print(tc[5])
     print(ARGO['mld'].sel(iNPROF=i).data, mld[-1])
@@ -179,8 +203,37 @@ def compare_to_ANHA4(run):
     ARGO.to_netcdf("Argo_mld_LabSea_"+run+".nc")
 
 
+def MLD_mean_std_dev():
+    """Simply calculate the mean and std dev for the
+    Argo and ANHA4 runs."""
+
+    # Calculating the mean and std dev
+    def calc(ds):
+        m = ds['mld'].mean().to_numpy()
+        sd = ds['mld'].std().to_numpy()
+        return m, sd
+
+    # Open the Argo file
+    ARGO = xr.open_dataset("Argo_mld_LabSea.nc")
+    m, sd = calc(ARGO)
+    print("Argo mean and std dev: "+str(m)+', '+str(sd))
+
+    # Opening the ANHA4 files
+    def open_MLD(run):
+        ds = xr.open_dataset("Argo_mld_LabSea_"+run+".nc")
+        ds = ds.drop_vars("mld").rename({run: "mld"})
+        return ds
+
+    runs = ['EPM151', 'EPM152', 'EPM155', 'EPM156', 'EPM157', 'EPM158']
+    for run in runs:
+        ds = open_MLD(run)
+        m, sd = calc(ds)
+        print(run+" mean and std dev: "+str(m)+', '+str(sd))
+
+
 if __name__ == "__main__":
     #calc_Argo_uncertainty()
-    for run in ["EPM157", "EPM158"]:
+    for run in ["EPM151", "EPM152", "EPM155", "EPM156"]:
         compare_to_ANHA4(run)
+    #MLD_mean_std_dev()
 

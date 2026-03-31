@@ -247,8 +247,8 @@ def MLD_mean_std_dev():
 
 
 if __name__ == "__main__":
-    #calc_Argo_uncertainty()
-    for run in ["EPM151", "EPM152", "EPM155", "EPM156"]:
+    calc_Argo_uncertainty()
+    for run in ["EPM157", "EPM158"]:
         compare_to_ANHA4(run)
     #MLD_mean_std_dev()
 

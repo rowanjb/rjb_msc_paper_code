@@ -138,13 +138,6 @@ def compare_to_ANHA4(run):
     """Since we have the individual float data in the interior Lab Sea,
     we can compare to the nearest neighbour ANHA4 points and compute
     some statistics."""
-    # Note to future rowan: in addition to the final nc's having the
-    # below time series, also create a monthly 2008-2018 "climatology"
-    # against which you can calc differences from Argo. Between these
-    # two and the mean/std dev of the basic Argo LabSea nc, you can
-    # use the old MLD figures (but change the source of the 221 m to
-    # the correct source) and maybe add a table of statistics (like
-    # holte and talley 2009) along with some nice discussion.
 
     # Open the Argo data
     print("Opening Argo dataset")
@@ -216,11 +209,14 @@ def compare_to_ANHA4(run):
         )).groupby('time_counter.month').mean('time_counter')
     ARGO['mld_clim'] = da
     ARGO.to_netcdf("Argo_mld_LabSea_"+run+".nc")
+    print("Finished saving "+run)
 
 
-def MLD_mean_std_dev():
+def simple_MLD_mean_std_dev():
     """Simply calculate the mean and std dev for the
     Argo and ANHA4 runs."""
+
+    print("Calculating means and std devs...")
 
     # Calculating the mean and std dev
     def calc(ds):
@@ -246,9 +242,55 @@ def MLD_mean_std_dev():
         print(run+" mean and std dev: "+str(m)+', '+str(sd))
 
 
+def compare_profiles_MLD_mean_std_dev():
+    """Compare the mean and std dev of the difference between
+    individual Argo data and the closest model data."""
+
+    print("Calculating profile-to-profile differences...")
+
+    # Main
+    runs = ['EPM151', 'EPM152', 'EPM155', 'EPM156', 'EPM157', 'EPM158']
+    for run in runs:
+        ds = xr.open_dataset("Argo_mld_LabSea_"+run+".nc")
+        ds['diff'] = ds[run] - ds['mld']
+        m = ds['diff'].mean().to_numpy()
+        sd = ds['diff'].std().to_numpy()
+        print(run+" mean and std dev: "+str(m)+', '+str(sd))
+
+
+def compare_Argo_to_clim_MLD_mean_std_dev():
+    """Finally compare the individual Argo data to the model
+    climatological value."""
+
+    print("Comparing Argo profiles to climatology...""")
+
+    # Main claculations
+    def calc(run):
+        ds = xr.open_dataset("Argo_mld_LabSea_"+run+".nc")
+        ds['Argo_month'] = ds['time_counter'].dt.month
+        ds['ANHA4_mld'] = ds['mld_clim'].sel(
+            month=ds['Argo_month'],
+            y_grid_T=ds['gridy'].astype(int),
+            x_grid_T=ds['gridx'].astype(int),
+        )
+        ds['diff'] = (ds[run] - ds['ANHA4_mld'])
+        m = ds['diff'].mean().to_numpy()
+        sd = ds['diff'].std().to_numpy()
+        ds['RMSE_sq'] = (ds['mld']-ds['ANHA4_mld'])**2
+        rmse = (ds['RMSE_sq'].sum().to_numpy()/
+                len(ds['RMSE_sq'].to_numpy()))**0.5
+        print(run+" mean and std dev: "+str(m)+', '+str(sd))
+        print(run+" RMSE: "+str(rmse))
+
+    # Running
+    runs = ['EPM151', 'EPM152', 'EPM155', 'EPM156', 'EPM157', 'EPM158']
+    for run in runs:
+        calc(run)
+
+
 if __name__ == "__main__":
     #calc_Argo_uncertainty()
-    for run in ["EPM151", "EPM152", "EPM155", "EPM156"]:
-        compare_to_ANHA4(run)
-    #MLD_mean_std_dev()
-
+    #compare_to_ANHA4(run)
+    simple_MLD_mean_std_dev()
+    compare_profiles_MLD_mean_std_dev()
+    compare_Argo_to_clim_MLD_mean_std_dev()

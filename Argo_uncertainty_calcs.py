@@ -273,7 +273,7 @@ def compare_Argo_to_clim_MLD_mean_std_dev():
             y_grid_T=ds['gridy'].astype(int),
             x_grid_T=ds['gridx'].astype(int),
         )
-        ds['diff'] = (ds[run] - ds['ANHA4_mld'])
+        ds['diff'] = abs(ds[run] - ds['ANHA4_mld'])
         m = ds['diff'].mean().to_numpy()
         sd = ds['diff'].std().to_numpy()
         ds['RMSE_sq'] = (ds['mld']-ds['ANHA4_mld'])**2

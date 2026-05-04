@@ -20,7 +20,7 @@ def filepaths(run):
     fp_dir = '../filepaths/'
 
     # Directory of ANHA4 output files
-    with open(fp_dir + 'ANHA4_graham_output.txt') as f: lines = f.readlines()
+    with open(fp_dir + 'ANHA4_output_dir.txt') as f: lines = f.readlines()
     ANHA4_graham_output_dir = [line.strip() for line in lines][0] 
 
     # Directory of the run's nemo output files on graham
@@ -99,28 +99,28 @@ def filepaths(run):
         filepaths_icemod.remove(bad_file + 'icemod.nc')
 
     # Saving the filepaths as txt files
-    with open(fp_dir + run + '_gridT_filepaths_jul2025.txt', 'w') as output:
+    with open(fp_dir + run + '_gridT_filepaths.txt', 'w') as output:
         for i in filepaths_gridT:
             output.write(str(i) + '\n')
-    with open(fp_dir + run + '_gridU_filepaths_jul2025.txt', 'w') as output:
+    with open(fp_dir + run + '_gridU_filepaths.txt', 'w') as output:
         for i in filepaths_gridU:
             output.write(str(i) + '\n')
-    with open(fp_dir + run + '_gridV_filepaths_jul2025.txt', 'w') as output:
+    with open(fp_dir + run + '_gridV_filepaths.txt', 'w') as output:
         for i in filepaths_gridV:
             output.write(str(i) + '\n')
-    with open(fp_dir + run + '_gridB_filepaths_jul2025.txt', 'w') as output:
+    with open(fp_dir + run + '_gridB_filepaths.txt', 'w') as output:
         for i in filepaths_gridB:
             output.write(str(i) + '\n')
-    with open(fp_dir + run + '_gridW_filepaths_jul2025.txt', 'w') as output:
+    with open(fp_dir + run + '_gridW_filepaths.txt', 'w') as output:
         for i in filepaths_gridW:
             output.write(str(i) + '\n')
-    with open(fp_dir + run + '_icebergs_filepaths_jul2025.txt', 'w') as output:
+    with open(fp_dir + run + '_icebergs_filepaths.txt', 'w') as output:
         for i in filepaths_icebergs:
             output.write(str(i) + '\n')
-    with open(fp_dir + run + '_icemod_filepaths_jul2025.txt', 'w') as output:
+    with open(fp_dir + run + '_icemod_filepaths.txt', 'w') as output:
         for i in filepaths_icemod:
             output.write(str(i) + '\n')
 
 if __name__ == '__main__':
-    for run in ['EPM151','EPM152','EPM155','EPM156','EPM157','EPM158']:
+    for run in ['EPM523','EPM544','EPM545','EPM546','EPM547']:
         filepaths(run)

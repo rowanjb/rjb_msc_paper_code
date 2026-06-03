@@ -23,7 +23,7 @@ def plot_stratification_figure():
     )
 
     # For controlling linestyle
-    runs = ['EPM157', 'EPM158', 'EPM151', 'EPM152', 'EPM155', 'EPM156']
+    runs = ['EPM157', 'EPM158', 'EPM151', 'EPM152', 'EPM155', 'EPM547']
     colours = plt.cm.viridis([0, 0, 0.5, 0.5, 0.8, 0.8])
     linestyles = ['-', '--', '-', '--', '-', '--']
     hatches = ["", "///", "", "///", "", "///"]
@@ -151,7 +151,7 @@ def plot_stratification_figure():
         means['EPM151'],
         means['EPM152'],
         means['EPM155'],
-        means['EPM156']
+        means['EPM547']
     ]
     kwargs = {'rotation': 90, 'fontsize': 9}
     ax2.bar_label(
@@ -192,7 +192,7 @@ def plot_stratification_figure():
     df = df/1e12  # /1e9 goes from m3 to km3, /1e12 goes thousand km3
 
     # Plotting the convective volume time series
-    df = df.groupby(df.index.shift(2, freq='ME').year).mean()
+    df = df.groupby(df.index.shift(2, freq='M').year).mean()
     df.plot(
         ax=ax3,
         xticks=years,
@@ -254,7 +254,7 @@ def plot_stratification_figure():
         means['EPM151'],
         means['EPM152'],
         means['EPM155'],
-        means['EPM156']
+        means['EPM547']
     ]
     kwargs = {'rotation': 90, 'fontsize': 9}  # For annotating mean values
     ax4.bar_label(

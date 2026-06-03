@@ -124,7 +124,7 @@ def ANHA4_xsection_maker(run, date):
 
 
 if __name__ == "__main__":
-    for run in ['EPM155','EPM156']:
+    for run in ['EPM155']:
         for date in ['y2013m05d15', 'y2013m07d04']:
             ANHA4_xsection_maker(run, date)
 

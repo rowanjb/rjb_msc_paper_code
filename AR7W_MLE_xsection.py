@@ -9,11 +9,11 @@ import xoak
 import gsw
 
 
-def ANHA4_xsection_maker(run, date):
+def ANHA4_xsection_maker(run):
     """Creates example cross section nc files with isopycnals and the
     MLE SF."""
 
-    print("Beginning: Cross section calculations for "+run+", "+date)
+    print("Beginning: Cross section calculations for "+run)
 
     # Start and end coordinates of the AR7W cells
     vertices_lon = [-56.458036, -48.036965]
@@ -26,13 +26,16 @@ def ANHA4_xsection_maker(run, date):
     filepaths_gridT = [line.strip() for line in lines]
 
     # Open the files
-    [fp] = [fp for fp in filepaths_gridT if date in fp]
+    years = [2014, 2015, 2016, 2017]
+    fps = [fp for fp in filepaths_gridT if any(str(year) in fp for year in years)][0:3]
     vars = ['vosaline',
             'votemper',
             'MLE Lf',
             'i-mle streamfunction',
             'j-mle streamfunction']
-    ds = xr.open_dataset(fp)[vars]
+    ds = xr.open_mfdataset(fps)#[vars]
+    print([i for i in list(ds.keys())])
+    quit()
 
     # Interpolate the streamfunction components onto same grid
     iMLE = ds['i-mle streamfunction'].interp(
@@ -118,13 +121,11 @@ def ANHA4_xsection_maker(run, date):
         cross['CT'],
         0)  # gsw.rho with p=0 gives potential density
 
-    cross.to_netcdf('cross_section_'+run+'_'+date+'.nc')
+    cross.to_netcdf('cross_section_'+run+'.nc')
 
-    print("Completed: Cross section calculations for "+run+", "+date)
+    print("Completed: Cross section calculations for "+run)
 
 
 if __name__ == "__main__":
-    for run in ['EPM155','EPM156']:
-        for date in ['y2013m05d15', 'y2013m07d04']:
-            ANHA4_xsection_maker(run, date)
-
+    for run in ['EPM155', 'EPM156']:
+        ANHA4_xsection_maker(run)

@@ -17,30 +17,18 @@ def ANHA4_sections():
 
     # Init figure
     cm = 1/2.54  # Inches to centimeters
-    layout = [['.', '.', 'ax5', 'ax5'],
-              ['.', '.', 'ax5', 'ax5'],
-              ['.', '.', '.', '.'],
-              ['ax1', 'ax1', 'ax2', 'ax2'],
-              ['ax1', 'ax1', 'ax2', 'ax2'],
-              ['ax1', 'ax1', 'ax2', 'ax2'],
-              ['ax1', 'ax1', 'ax2', 'ax2'],
-              ['ax3', 'ax3', 'ax4', 'ax4'],
-              ['ax3', 'ax3', 'ax4', 'ax4'],
-              ['ax3', 'ax3', 'ax4', 'ax4'],
-              ['ax3', 'ax3', 'ax4', 'ax4']]
+    layout = [['ax1', 'ax2', 'ax3', 'ax4', 'ax5'],
+              ['ax6', 'ax7', 'ax8', 'ax9', 'ax10']]
     westLon, eastLon, northLat, southLat = -70, -40, 65, 52
     projection = ccrs.AlbersEqualArea(
         central_longitude=-55,
         central_latitude=50,
         standard_parallels=(southLat, northLat)
     )
-    fig, axd = plt.subplot_mosaic(
-        layout,
-        figsize=(19*cm, 15*cm),
-        per_subplot_kw={("ax5"): {"projection": projection}}
-    )
+    fig, axd = plt.subplot_mosaic(layout, figsize=(19*cm, 15*cm))
     ax1, ax2, ax3, ax4 = axd['ax1'], axd['ax2'], axd['ax3'], axd['ax4']
-    ax5 = axd['ax5']
+    ax5, ax6, ax7, ax8 = axd['ax5'], axd['ax6'], axd['ax7'], axd['ax8']
+    ax9, ax20 = axd['ax9'], axd['ax10']
 
     # Start and end coordinates of the AR7W cells
     vertices_lon = [-56.458036, -48.036965]
@@ -253,7 +241,7 @@ def ANHA4_sections():
         wspace=0.15,
         hspace=0.75)
 
-    name = 'figure_AR7W_MLE_xsection.svg'
+    name = 'figure_AR7W_MLE_xsection_monthly_clim.svg'
     plt.savefig(name)
 
     print("Saved: "+name)

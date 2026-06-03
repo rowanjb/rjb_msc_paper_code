@@ -55,13 +55,14 @@ def ANHA4_sections():
 
         ds['pot_dens'] = ds['pot_dens']-1000  # Sigma notation
 
-        cmap = mpl.colormaps.get_cmap('Greys')
+        cmap = mpl.colormaps.get_cmap('Blues')
         cmap.set_bad('cadetblue')
         cvmin, cvmax = 27, 27.775
         levels = np.linspace(cvmin, cvmax, 20)
         p2 = ds['pot_dens'].plot.contourf(
             ax=ax, add_colorbar=False, cmap='cividis_r', vmin=cvmin,
             vmax=cvmax, levels=levels, rasterized=True)
+        print(ds['Psi'].max().to_numpy())
         p1 = ds['Psi'].plot.pcolormesh(
             ax=ax, add_colorbar=False, vmin=0,
             vmax=2.7, cmap=cmap, rasterized=True)

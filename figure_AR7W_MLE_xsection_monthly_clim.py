@@ -1,4 +1,6 @@
-# Rowan Brown, 14 Aug 2025
+# Rowan Brown, 3 Jun 2026
+# Created on the suggestion of one reviewer; copied from the other
+# AR7W cross section script (which creates a figure for the methods section)
 
 import xarray as xr
 import numpy as np
@@ -17,33 +19,24 @@ def ANHA4_sections():
 
     # Init figure
     cm = 1/2.54  # Inches to centimeters
-    layout = [['ax1', 'ax2', 'ax3', 'ax4', 'ax5'],
-              ['ax6', 'ax7', 'ax8', 'ax9', 'ax10']]
-    westLon, eastLon, northLat, southLat = -70, -40, 65, 52
-    projection = ccrs.AlbersEqualArea(
-        central_longitude=-55,
-        central_latitude=50,
-        standard_parallels=(southLat, northLat)
-    )
-    fig, axd = plt.subplot_mosaic(layout, figsize=(19*cm, 15*cm))
+    layout = [['ax1', 'ax2', 'ax7', 'ax8'],
+              ['ax3', 'ax4', 'ax9', 'a10'],
+              ['ax5', 'ax6', 'a11', 'a12'],]
+    fig, axd = plt.subplot_mosaic(layout, figsize=(19*cm, 12*cm))
     ax1, ax2, ax3, ax4 = axd['ax1'], axd['ax2'], axd['ax3'], axd['ax4']
     ax5, ax6, ax7, ax8 = axd['ax5'], axd['ax6'], axd['ax7'], axd['ax8']
-    ax9, ax20 = axd['ax9'], axd['ax10']
+    ax9, a10, a11, a12 = axd['ax9'], axd['a10'], axd['a11'], axd['a12']
 
-    # Start and end coordinates of the AR7W cells
-    vertices_lon = [-56.458036, -48.036965]
-    vertices_lat = [53.410189, 60.733433]
+    def plot_xsection(run, month, ax, letter):
 
-    def plot_xsection(run, date, ax, letter):
-
-        fp = 'cross_section_'+run+'_'+date+'.nc'
+        fp = 'cross_section_'+run+'_'+'monthly_clim.nc'
         ds = xr.open_dataset(fp)
-        ds = ds.isel(time_counter=0)
+        ds = ds.sel(month=month)
         ds = ds.where(ds['vosaline'] != 0, drop=True)
 
         ds['pot_dens'] = ds['pot_dens']-1000  # Sigma notation
 
-        cmap = mpl.colormaps.get_cmap('Greys')
+        cmap = mpl.colormaps.get_cmap('Blues')
         cmap.set_bad('cadetblue')
         cvmin, cvmax = 27, 27.775
         levels = np.linspace(cvmin, cvmax, 20)
@@ -52,7 +45,7 @@ def ANHA4_sections():
             vmax=cvmax, levels=levels, rasterized=True)
         p1 = ds['Psi'].plot.pcolormesh(
             ax=ax, add_colorbar=False, vmin=0,
-            vmax=2.7, cmap=cmap, rasterized=True)
+            vmax=10, cmap=cmap, rasterized=True)
         ds['pot_dens'].plot.contour(
             ax=ax, add_colorbar=False, cmap='k', vmin=cvmin,
             vmax=cvmax, levels=levels, linewidths=0.5)
@@ -62,21 +55,31 @@ def ANHA4_sections():
         ax.invert_yaxis()
         ax.grid(visible=True, axis='both', color='grey', lw=1, alpha=0.75)
 
-        run_dict = {"EPM155": "GDPS-\nTS", "EPM156": "ERAI-\nTS"}
+        month_dict = {12: "Dec", 1: "Jan", 2: "Feb", 3: "Mar",
+                      4: "Apr", 5: "May"}
+        ax.set_title(month_dict[month], fontsize=12, pad=-10)
+
+        run_dict = {"EPM155": "GDPS-TS", "EPM156": "ERAI-TS"}
         ax.text(
             0.025,
-            0.025,
+            0.045,
             run_dict[run],
             transform=ax.transAxes,
             fontsize=9,
             fontweight='bold',
             va='bottom',
-            ha='left'
+            ha='left',
+            bbox=dict(
+                facecolor='white',
+                edgecolor='none',
+                alpha=0.6,
+                boxstyle='square,pad=0.1'
+            )
         )
 
         ax.text(
-            0.085,
-            0.95,
+            0.15,
+            0.925,
             letter,
             transform=ax.transAxes,
             fontsize=14,
@@ -93,41 +96,21 @@ def ANHA4_sections():
         return p1, p2, ds, levels
 
     # Plotting
-    letters = [['b', 'c',], ['d', 'e']]
-    for row, run in enumerate(['EPM155', 'EPM156']):
-        for col, date in enumerate(['y2013m05d15', 'y2013m07d04']):
-            ax = [[ax1, ax2], [ax3, ax4]][row][col]
-            letter = letters[row][col]
-            p, p2, ds, levels = plot_xsection(run, date, ax, letter)
+    p, p2, ds, levels = plot_xsection("EPM155", 12, ax1, 'a')
+    p, p2, ds, levels = plot_xsection("EPM155",  1, ax2, 'b')
+    p, p2, ds, levels = plot_xsection("EPM155",  2, ax3, 'c')
+    p, p2, ds, levels = plot_xsection("EPM155",  3, ax4, 'd')
+    p, p2, ds, levels = plot_xsection("EPM155",  4, ax5, 'e')
+    p, p2, ds, levels = plot_xsection("EPM155",  5, ax6, 'f')
 
-    # Adding dates
-    ax1.text(
-        0.5,
-        1.1,
-        '15 May 2013',
-        transform=ax1.transAxes,
-        fontsize=12,
-        va='center',
-        ha='center'
-    )
-    ax2.text(
-        0.5,
-        1.1,
-        '4 July 2013',
-        transform=ax2.transAxes,
-        fontsize=12,
-        va='center',
-        ha='center'
-    )
+    p, p2, ds, levels = plot_xsection("EPM156", 12, ax7, 'g')
+    p, p2, ds, levels = plot_xsection("EPM156",  1, ax8, 'h')
+    p, p2, ds, levels = plot_xsection("EPM156",  2, ax9, 'i')
+    p, p2, ds, levels = plot_xsection("EPM156",  3, a10, 'j')
+    p, p2, ds, levels = plot_xsection("EPM156",  4, a11, 'k')
+    p, p2, ds, levels = plot_xsection("EPM156",  5, a12, 'l')
 
-    # Dealing with the axes and ticks
-    ax1.xaxis.set_ticklabels([])
-    ax1.set_xlabel('')
-    ax1.set_ylabel('')
-    ax2.xaxis.set_ticklabels([])
-    ax2.axes.yaxis.set_ticklabels([])
-    ax2.set_ylabel('')
-    ax2.set_xlabel('')
+    # Adding correct x-axis ticks
     old_xticks = [0, 240, 480, 720, 958]
     xticks = [
         int(round(d, -1))
@@ -140,106 +123,60 @@ def ANHA4_sections():
         for d
         in xticks
     ]
-    ax3.xaxis.set_ticklabels(xticks)
-    ax3.set_xlabel('')
-    ax3.set_ylabel('')
-    ax4.axes.yaxis.set_ticklabels([])
-    ax4.axes.xaxis.set_ticklabels(xticks)
-    ax4.set_ylabel('')
-    ax4.set_xlabel('')
+
+    # Dealing with the axes and ticks
+    for ax in [ax2, ax4, ax7, ax8, ax9, a10]:
+        ax.xaxis.set_ticklabels([])
+        ax.yaxis.set_ticklabels([])
+        ax.set_xlabel('')
+        ax.set_ylabel('')
+    for ax in [ax1, ax2, ax3]:
+        ax.xaxis.set_ticklabels([])
+        ax.set_xlabel('')
+        ax.set_ylabel('')
+    ax5.xaxis.set_ticklabels(xticks)
+    ax5.set_xlabel('')
+    ax5.set_ylabel('')
+    for ax in [ax6, a11, a12]:
+        ax.yaxis.set_ticklabels([])
+        ax.xaxis.set_ticklabels(xticks)
+        ax.set_xlabel('')
+        ax.set_ylabel('')
+
+    # Labels
     fig.text(
         0.5,
-        0.025,
+        0.03,
         r'Distance along the AR7W section ($km$)',
         fontsize=12,
         ha='center')
     fig.text(
-        0.045,
-        0.3,
+        0.04,
+        0.35,
         r'Depth ($m$)',
         fontsize=12,
         ha='center',
         rotation=90)
 
-    # Adding colourbars
-    cbar_ax = fig.add_axes([0.1, 0.9, 0.45, 0.025])
+    # Adding colourbar
+    cbar_ax = fig.add_axes([0.2, 0.9, 0.6, 0.025])
     cb = fig.colorbar(
         p,
         cax=cbar_ax,
         orientation='horizontal',
-        format='%.1f')
+        format='%.1f',
+        extend='max')
     cb.ax.set_title(
         r"Cross-sections of the SMLEp streamfunction, $\Psi$",
         fontsize=12)
-    #cbar_ax = fig.add_axes([0.15, 0.73, 0.5, 0.025])
-    #cb = fig.colorbar(
-    #    p2,
-    #    cax=cbar_ax,
-    #    orientation='horizontal',
-    #    format='%.2f',
-    #    extend='neither')
-    #cb.ax.set_title(r"Isopycnals ($kg$ $m^{-3}$)", fontsize=12)
-    #cb.ax.minorticks_off()
-    #cb.set_ticks(levels[::9])
-
-    # Adding map
-    land_50m = feature.NaturalEarthFeature(
-        'physical',
-        'land',
-        '50m',
-        edgecolor='black',
-        facecolor='cadetblue'
-    )
-    ax5.set_extent(
-        [westLon, eastLon, southLat, northLat],
-        crs=ccrs.PlateCarree()
-    )
-    ax5.set_title("AR7W section", fontsize=12, pad=-10)
-    ax5.add_feature(land_50m, color="cadetblue")
-    ax5.coastlines(resolution='50m')
-    ax5.plot(
-        vertices_lon,
-        vertices_lat,
-        transform=ccrs.PlateCarree(),
-        color='black'
-    )
-    gl = ax5.gridlines(
-        draw_labels=True,
-        dms=False,
-        x_inline=False,
-        y_inline=False,
-        linewidth=0.5
-    )
-    gl.top_labels = False
-    gl.right_labels = False
-    gl.rotate_labels = False
-    gl.ylocator = mticker.FixedLocator([50, 55, 60, 65, 70, 75, 80])
-    gl.xlocator = mticker.FixedLocator([-45, -55, -65])
-    gl.xlabel_style = {'size': 9}
-    gl.ylabel_style = {'size': 9}
-    ax5.text(
-        0.3,
-        0.9,
-        'a',
-        transform=ax5.transAxes,
-        fontsize=14,
-        fontweight='bold',
-        va='top',
-        ha='right',
-        bbox=dict(
-            facecolor='white',
-            edgecolor='black',
-            boxstyle='circle,pad=0.1'
-        )
-    )
 
     plt.subplots_adjust(
-        left=None,
-        bottom=None,
-        right=None,
-        top=0.96,
+        left=0.125,
+        bottom=0.15,
+        right=0.95,
+        top=0.79,
         wspace=0.15,
-        hspace=0.75)
+        hspace=0.35)
 
     name = 'figure_AR7W_MLE_xsection_monthly_clim.svg'
     plt.savefig(name)

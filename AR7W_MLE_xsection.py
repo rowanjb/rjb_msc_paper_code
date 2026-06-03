@@ -26,16 +26,17 @@ def ANHA4_xsection_maker(run):
     filepaths_gridT = [line.strip() for line in lines]
 
     # Open the files
-    years = [2014, 2015, 2016, 2017]
-    fps = [fp for fp in filepaths_gridT if any(str(year) in fp for year in years)][0:3]
+    years = [2012, 2013, 2014, 2015, 2016, 2017]
+    fps = [fp for fp in filepaths_gridT if any(str(year) in fp for year in years)]
+    print(fps)
+    quit()
+    #[fp] = [fp for fp in filepaths_gridT if date in fp]
     vars = ['vosaline',
             'votemper',
             'MLE Lf',
             'i-mle streamfunction',
             'j-mle streamfunction']
-    ds = xr.open_mfdataset(fps)#[vars]
-    print([i for i in list(ds.keys())])
-    quit()
+    ds = xr.open_dataset(fp)[vars]
 
     # Interpolate the streamfunction components onto same grid
     iMLE = ds['i-mle streamfunction'].interp(
@@ -121,11 +122,13 @@ def ANHA4_xsection_maker(run):
         cross['CT'],
         0)  # gsw.rho with p=0 gives potential density
 
-    cross.to_netcdf('cross_section_'+run+'.nc')
+    cross.to_netcdf('cross_section_'+run+'_'+date+'.nc')
 
-    print("Completed: Cross section calculations for "+run)
+    print("Completed: Cross section calculations for "+run+", "+date)
 
 
 if __name__ == "__main__":
-    for run in ['EPM155', 'EPM156']:
-        ANHA4_xsection_maker(run)
+    for run in ['EPM155','EPM156']:
+        for date in ['y2013m05d15', 'y2013m07d04']:
+            ANHA4_xsection_maker(run)
+

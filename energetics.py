@@ -29,7 +29,7 @@ def energy(calc_type,run,d,window=21):
     gridV_txt = '../filepaths/'+run+'_gridV_filepaths_jul2025.txt'
     gridT_txt = '../filepaths/'+run+'_gridT_filepaths_jul2025.txt'
     gridW_txt = '../filepaths/'+run+'_gridW_filepaths_jul2025.txt'
-
+mv ../
     # Open the text files and get lists of the .nc output filepaths
     years_we_care_about = list(range(2008,2019))
     start_date, end_date = datetime(2007,6,1), datetime(2019,3,1)

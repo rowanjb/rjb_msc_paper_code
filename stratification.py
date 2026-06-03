@@ -24,7 +24,7 @@ def convective_resistance(run):
     mask = xr.open_dataarray('masks/mask_LS_3000.nc').astype(int)
 
     # Text file of paths to non-empty model output
-    gridT_txt = '../filepaths/'+run+'_gridT_filepaths_jul2025.txt'
+    gridT_txt = '../filepaths/'+run+'_gridT_filepaths.txt'
 
     # Open the text files and get lists of the .nc output filepaths
     with open(gridT_txt) as f:
@@ -32,8 +32,28 @@ def convective_resistance(run):
     filepaths_gridT = [line.strip() for line in lines]
 
     # Open the files and look at e3t and votemper
-    preprocess_gridT = lambda ds: ds[['e3t', 'votemper', 'vosaline', 'somxl010']]
+    preprocess_gridT = lambda ds: ds[['e3t', 'votemper', 'vosaline']]
     DS = xr.open_mfdataset(filepaths_gridT, preprocess=preprocess_gridT)
+
+    # New v5 code to reset the coordinates of e3t
+    # Note the lats and lons of 2D and 3D inner/outter appear to be
+    # the same as the basic lats and lons anyway (there are no halos
+    # or AGRIF in this case so it is OK)
+    DS['e3t'] = DS['e3t'].rename({
+        'grid_T_3D_inner': 'deptht',
+        'y_grid_T_3D_inner': 'y_grid_T',
+        'x_grid_T_3D_inner': 'x_grid_T'
+    })
+    DS = DS.drop_vars([
+        'nav_lat_grid_T_3D_inner',
+        'nav_lon_grid_T_3D_inner',
+        'grid_T_3D_inner',
+    ])
+
+    # For this script using NEMO v5, we also need to update the deptht
+    # coord from the mask (the values are very similar and moot in these
+    # calcs anyway)
+    mask['deptht'] = DS['deptht']
 
     # Add horizontal cell dims
     DS[['e1t', 'e2t']] = e1t, e2t
@@ -42,7 +62,7 @@ def convective_resistance(run):
     # Easy way to do this is to mask anywhere with 0 salinities, since 0 temps are plausible
     DS = DS.where(DS.vosaline > 0)
 
-    # Apply tmask (which I /think/ it for land etc.)
+    # Apply tmask (which I /think/ is for land etc.)
     DS = DS.where(tmask == 1)
 
     # Apply region mask
@@ -58,18 +78,18 @@ def convective_resistance(run):
     # Gravity (why not incl. lots of decimal places?)
     g = 9.80665
 
-    # Calculate cell areas 
+    # Calculate cell areas
     DS['areas'] = DS['e1t'].isel(time_counter=0,deptht=0)*DS['e2t'].isel(time_counter=0,deptht=0)
-    
+   
     # Calculate cell potential densities
     DS['p'] = gsw.p_from_z( (-1)*DS['deptht'], DS['nav_lat_grid_T'] ) # Requires negative depths
     DS['SA'] = gsw.SA_from_SP( DS['vosaline'], DS['p'], DS['nav_lon_grid_T'], DS['nav_lat_grid_T'] )
     DS['CT'] = gsw.CT_from_pt( DS['SA'], DS['votemper'])
-    DS['pot_dens'] = DS['pot_dens'] = gsw.rho( DS['SA'], DS['CT'], 0 ) # gsw.rho with p=0 gives potential density
+    DS['pot_dens'] = gsw.rho( DS['SA'], DS['CT'], 0 ) # gsw.rho with p=0 gives potential density
 
     # ...calculating term 1 in the double integrand
     # (Used e3t.sum instead of depth[-1] because term2 is integrated using e3t too
-    DS['term1'] = DS['e3t'].sum(dim='deptht')*DS['pot_dens'].isel(deptht=-1) # [m]*[kg/m**3]
+    DS['term1'] = DS['e3t'].sum(dim='deptht')*DS['pot_dens'].isel(deptht=-1)  # [m]*[kg/m**3]
 
     # ...calculating term 2 in the double integrand 
     DS['term2'] = (DS['pot_dens']*DS['e3t']).sum('deptht') # [m]*[kg/m**3] = [kg/m**2]
@@ -81,7 +101,7 @@ def convective_resistance(run):
     DS['omega_cr_per_vol'] = g*DS['integrand'] # [m/s**2]*[kg/m**2] = [kg / s**2 m] = [J/m**3]
     DS['omega_cr'] = DS['omega_cr_per_vol']*DS['areas']*DS['e3t'].sum(dim='deptht') # Multiply by area and depth to get J
     DS['omega_cr_sum'] = DS['omega_cr'].sum(['x_grid_T','y_grid_T'])
-    
+
     # Saving
     DS['omega_cr_sum'].to_netcdf('ls3k_convective_resistance_'+run+'.nc') 
     
@@ -103,7 +123,7 @@ def MLD(run):
     mask = xr.open_dataarray('masks/mask_LS_3000.nc').astype(int)
 
     # Text file of paths to non-empty model output
-    gridT_txt = '../filepaths/'+run+'_gridT_filepaths_jul2025.txt'
+    gridT_txt = '../filepaths/'+run+'_gridT_filepaths.txt'
 
     # Open the text files and get lists of the .nc output filepaths
     with open(gridT_txt) as f: lines = f.readlines()
@@ -340,9 +360,9 @@ def MLD_LAB60():
     print('Completed: Stratification analyses for LAB60')
 
 if __name__ == '__main__':
-    #for run in ['EPM151','EPM152','EPM155','EPM156','EPM157','EPM158']:
+    for run in ['EPM523', 'EPM544', 'EPM545', 'EPM546', 'EPM547']:
         #convective_resistance(run)    
-        #MLD(run)
+        MLD(run)
     #MLD_LAB60()
-    MLD_Argo('NorthAtlantic')
+    #MLD_Argo('NorthAtlantic')
     #MLD_Argo('LabSea')

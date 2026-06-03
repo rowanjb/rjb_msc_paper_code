@@ -25,22 +25,14 @@ def plot_MLDs_body_figure():
 
     # Init the figure
     cm = 1/2.54  # Inches to centimeters
-    layout = [['ax1', 'ax1', 'ax1', 'ax1', 'ax2', 'ax2'],
-              ['ax1', 'ax1', 'ax1', 'ax1', 'ax2', 'ax2'],
-              ['ax1', 'ax1', 'ax1', 'ax1', 'ax2', 'ax2'],
-              ['ax1', 'ax1', 'ax1', 'ax1', 'ax2', 'ax2'],
-              ['ax1', 'ax1', 'ax1', 'ax1', 'ax3', 'ax3'],
-              ['ax1', 'ax1', 'ax1', 'ax1', 'ax3', 'ax3'],
-              ['ax1', 'ax1', 'ax1', 'ax1', 'ax3', 'ax3'],
-              ['ax1', 'ax1', 'ax1', 'ax1', 'ax3', 'ax3'],
-              ['ax1', 'ax1', 'ax1', 'ax1', 'ax4', 'ax4'],
-              ['.', '.', '.', '.', 'ax4', 'ax4'],
-              ['.', '.', '.', '.', 'ax4', 'ax4'],
-              ['.', '.', '.', '.', 'ax4', 'ax4'],
-              ['ax5', 'ax5', 'ax6', 'ax6', 'ax7', 'ax7'],
-              ['ax5', 'ax5', 'ax6', 'ax6', 'ax7', 'ax7'],
-              ['ax5', 'ax5', 'ax6', 'ax6', 'ax7', 'ax7'],
-              ['ax5', 'ax5', 'ax6', 'ax6', 'ax7', 'ax7']]
+    layout = [['ax1', 'ax1', 'ax1', 'ax1'],
+              ['ax1', 'ax1', 'ax1', 'ax1'],
+              ['ax1', 'ax1', 'ax1', 'ax1'],
+              [  '.',   '.',   '.',   '.'],
+              ['ax2', 'ax3', 'ax4', 'ax5'],
+              ['ax2', 'ax3', 'ax4', 'ax5'],
+              ['ax6', 'ax7', 'ax8', 'ax9'],
+              ['ax6', 'ax7', 'ax8', 'ax9']]
     proj = ccrs.AlbersEqualArea(
         central_longitude=-55,
         central_latitude=50,
@@ -61,6 +53,8 @@ def plot_MLDs_body_figure():
     ax5 = axd['ax5']
     ax6 = axd['ax6']
     ax7 = axd['ax7']
+    ax8 = axd['ax8']
+    ax9 = axd['ax9']
 
     # Function for opening and processing the MLD data and storing it a pd df
     def open_processed_data(run):
@@ -107,7 +101,7 @@ def plot_MLDs_body_figure():
         return merged
 
     # Opening the ANHA4 MLD data
-    runs = ['EPM157', 'EPM158', 'EPM151', 'EPM152', 'EPM155', 'EPM156']
+    runs = ['EPM523', 'EPM544', 'EPM545', 'EPM546', 'EPM547']
     df = []
     for run in runs:
         df_temp = open_processed_data(run)
@@ -142,8 +136,8 @@ def plot_MLDs_body_figure():
     )
     print("The mean winter MLDs are: ")
     print(means)
-    colours = plt.cm.viridis([0, 0, 0.5, 0.5, 0.8, 0.8, 1, 1])
-    hatches = ["", "///", "", "///", "", "///", 'x', 'x']
+    colours = plt.cm.viridis([0, 0, 0, 0, 0, 0, 1, 1])#0.5, 0.5, 0.8, 0.8, 1, 1])
+    hatches = ["", "///", "///", "///", "///", 'x', 'x']
     means.plot.bar(
         ax=ax1,
         color=colours,
@@ -159,8 +153,10 @@ def plot_MLDs_body_figure():
         fontdict={'fontsize': 12}
     )
     ax1.set_xticks(
-        [0.5, 2.5, 4.5, 6, 7],
-        ['Control', 'Tides', 'Tides\nSMLEp', '1/60°\nmodel', 'Argo'],
+        #[0.5, 2.5, 4.5, 6, 7],
+        #['Control', 'Tides', 'Tides\nSMLEp', '1/60°\nmodel', 'Argo'],
+        [0, 1, 2, 3, 4, 5, 6],
+        ['EPM523', 'EPM544', 'EPM545', 'EPM546', 'EPM547', 'ECP017', 'Argo'],
         rotation=0,
         fontsize=12
     )
@@ -183,7 +179,7 @@ def plot_MLDs_body_figure():
     ax1.yaxis.grid(True, linewidth=1, alpha=0.75, zorder=0)
 
     # Handling the legend
-    labels = ['GDPS', 'ERA-I', 'Other']
+    labels = ['No GM', 'With GM', 'Other']
     hatches = ['', "///", "x"]
     handles = []
     for n, _ in enumerate(labels):
@@ -197,16 +193,15 @@ def plot_MLDs_body_figure():
         shadow=True
     )
     labls = [
-        means['EPM157'],
-        means['EPM158'],
-        means['EPM151'],
-        means['EPM152'],
-        means['EPM155'],
-        means['EPM156'],
+        means['EPM523'],
+        means['EPM544'],
+        means['EPM545'],
+        means['EPM546'],
+        means['EPM547'],
         means['LAB60'],
         means['Argo']
     ]
-    ax1.set_ylim(bottom=0, top=775)
+    ax1.set_ylim(bottom=0, top=500)#775)
     kwargs = {'rotation': 0, 'fontsize': 12}
     ax1.bar_label(
         ax1.containers[0],
@@ -247,20 +242,13 @@ def plot_MLDs_body_figure():
         gl.bottom_labels = False
         gl.left_labels = False
         gl.rotate_labels = False
-        if run == 'EPM157':
+        if run == 'EPM523':
+            gl.left_labels = True
+        if run == 'EPM546':
             gl.right_labels = True
-        if run == 'EPM151':
-            gl.right_labels = True
-        if run == 'EPM155':
-            gl.right_labels = True
-        if run == 'EPM158':
+        if run == 'EPM547':
             gl.left_labels = True
             gl.bottom_labels = True
-        if run == 'EPM152':
-            gl.bottom_labels = True
-        if run == 'EPM156':
-            gl.bottom_labels = True
-            gl.right_labels = True
         gl.ylocator = mticker.FixedLocator([50, 55, 60, 65, 70, 75, 80])
         gl.xlocator = mticker.FixedLocator([-45, -55, -65])
         gl.xlabel_style = {'size': 12}
@@ -272,7 +260,7 @@ def plot_MLDs_body_figure():
             transform=ccrs.PlateCarree(),
             cmap='plasma',
             vmin=0,
-            vmax=2500,
+            vmax=1000,#2500,
             rasterized=True)
         ax.text(
             0.2,
@@ -305,21 +293,20 @@ def plot_MLDs_body_figure():
         )
         return p
 
-    plt_mini_map('EPM157', r'GDPS-C', ax2, 'b')
-    plt_mini_map('EPM151', r'GDPS-T', ax3, 'c')
-    plt_mini_map('EPM155', r'GDPS-TS', ax4, 'd')
-    plt_mini_map('EPM158', r'ERAI-C', ax5, 'e')
-    plt_mini_map('EPM152', r'ERAI-T', ax6, 'f')
-    p = plt_mini_map('EPM156', r'ERAI-TS', ax7, 'g')
+    plt_mini_map('EPM523', r'EPM523', ax2, 'b')
+    plt_mini_map('EPM544', r'EPM544', ax3, 'c')
+    plt_mini_map('EPM545', r'EPM545', ax4, 'd')
+    plt_mini_map('EPM546', r'EPM546', ax5, 'e')
+    p = plt_mini_map('EPM547', r'EPM547', ax6, 'g')
 
     # Adding a colorbar for the maps
     axins = inset_axes(
-        ax6,
-        width="212%",  # width: 5% of parent_bbox width
-        height="10%",  # height: 50%
+        ax2,
+        width="100%", #212%",  # width: 5% of parent_bbox width
+        height="15%", #10%",  # height: 50%
         loc="upper center",
-        bbox_to_anchor=(-0.57, 0.315, 0.95, 1.),
-        bbox_transform=ax6.transAxes,
+        bbox_to_anchor=(0.2, 0.4, 1, 1), #-0.57, 0.315, 0.95, 1.),
+        bbox_transform=ax2.transAxes,
         borderpad=0
     )
     fig.colorbar(p, cax=axins, orientation='horizontal')

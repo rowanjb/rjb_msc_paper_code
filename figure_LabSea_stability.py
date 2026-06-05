@@ -2,6 +2,7 @@
 
 import matplotlib.pyplot as plt
 import xarray as xr
+import cftime
 
 
 def stability_figure():
@@ -22,7 +23,7 @@ def stability_figure():
     def plot_profiles(ds1, ds2, ax, letter, title):
         ds_diff = ds1-ds2
         ds_diff = ds_diff*1E6  # Handling formatting
-        ds_diff['N2'].plot(y='deptht', ax=ax, c=c3, label='$N2$')
+        ds_diff['N2'].plot(y='deptht', ax=ax, c=c3, label='$N^2$')
         ds_diff['N2_temp'].plot(y='deptht', ax=ax, c=c1, label='$N^2_{heat}$')
         ds_diff['N2_salt'].plot(y='deptht', ax=ax, c=c2, label='$N^2_{salt}$')
         ax.invert_yaxis()
@@ -34,7 +35,7 @@ def stability_figure():
         ax.xaxis.set_tick_params(labelsize=9)
         ax.yaxis.set_tick_params(labelsize=9)
         ax.set_title(title, fontsize=12)
-        ax.set_xlim(-1.4, 1.4)
+        ax.set_xlim(-2.3, 2.3)
         ax.text(
             0.08,
             0.97,
@@ -56,7 +57,13 @@ def stability_figure():
     def op_stab(run):
         ds = xr.open_dataset('stability_LS3000_'+run+'.nc')
         ds = ds.where(ds['deptht'] < 1000, drop=True)
-        ds_mean = ds.where(ds['time_counter'].dt.month.isin([12, 1, 2, 3, 4]), drop=True).mean("time_counter")
+        start = cftime.DatetimeNoLeap(2007, 11, 30)
+        end = cftime.DatetimeNoLeap(2017, 5, 1)
+        ds = ds.where(
+            (ds['time_counter'] > start) & (ds['time_counter'] < end),
+            drop=True)
+        ds_mean = ds.where(
+            ds['time_counter'].dt.month.isin([12, 1, 2, 3, 4]), drop=True).mean("time_counter")
         return ds_mean
 
     # Plotting
@@ -80,7 +87,7 @@ def stability_figure():
         shadow=True,
         fontsize=9
     )
-    plt.suptitle("Stability anomalies", fontsize=12)
+    plt.suptitle("Winter stability anomalies", fontsize=12)
 
     plt.subplots_adjust(
         wspace=0.15, bottom=0.15, top=0.825, left=0.12, right=0.96)

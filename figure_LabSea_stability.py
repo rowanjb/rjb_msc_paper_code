@@ -23,9 +23,9 @@ def stability_figure():
     def plot_profiles(ds1, ds2, ax, letter, title):
         ds_diff = ds1-ds2
         ds_diff = ds_diff*1E6  # Handling formatting
-        ds_diff['N2'].plot(y='deptht', ax=ax, c=c3, label='$N^2$')
-        ds_diff['N2_temp'].plot(y='deptht', ax=ax, c=c1, label='$N^2_{heat}$')
-        ds_diff['N2_salt'].plot(y='deptht', ax=ax, c=c2, label='$N^2_{salt}$')
+        ds_diff['N2'].plot(y='deptht', ax=ax, c=c3, label="$N^{2\prime}$")
+        ds_diff['N2_temp'].plot(y='deptht', ax=ax, c=c1, label="$N^{2\prime}_{heat}$")
+        ds_diff['N2_salt'].plot(y='deptht', ax=ax, c=c2, label="$N^{2\prime}_{salt}$")
         ax.invert_yaxis()
         ax.set_ylim(1000, 0)
         ax.set_ylabel('')
@@ -75,7 +75,8 @@ def stability_figure():
     # Misc. formatting
     plt.text(
         0.5, 0.02,
-        r"Brunt-Väisälä frequency, $N^2$ ($\times 10^{-6}$ $s^{-1}$)",
+        #r"Brunt-Väisälä frequency, $N^2$ ($\times 10^{-6}$ $s^{-1}$)",
+        r"$\times 10^{-6}$ $s^{-1}$",
         ha='center', va='bottom', transform=fig.transFigure, fontsize=12)
     for ax in [ax2, ax3, ax4]:
         ax.set_yticklabels([])

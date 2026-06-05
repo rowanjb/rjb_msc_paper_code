@@ -67,10 +67,10 @@ def stability_figure():
         return ds_mean
 
     # Plotting
-    plot_profiles(op_stab("EPM151"), op_stab("EPM157"), ax1, 'a', 'GDPS: Anomaly\ndue to tides')
-    plot_profiles(op_stab("EPM155"), op_stab("EPM151"), ax2, 'b', 'GDPS: Anomaly\ndue to SMLEp')
-    plot_profiles(op_stab("EPM152"), op_stab("EPM158"), ax3, 'c', 'ERA-I: Anomaly\ndue to Tides')
-    plot_profiles(op_stab("EPM156"), op_stab("EPM152"), ax4, 'd', 'ERA-I: Anomaly\ndue to SMLEp')
+    plot_profiles(op_stab("EPM151"), op_stab("EPM157"), ax1, 'a', 'GDPS: Anomalies\ndue to tides')
+    plot_profiles(op_stab("EPM155"), op_stab("EPM151"), ax2, 'b', 'GDPS: Anomalies\ndue to SMLEp')
+    plot_profiles(op_stab("EPM152"), op_stab("EPM158"), ax3, 'c', 'ERA-I: Anomalies\ndue to Tides')
+    plot_profiles(op_stab("EPM156"), op_stab("EPM152"), ax4, 'd', 'ERA-I: Anomalies\ndue to SMLEp')
 
     # Misc. formatting
     plt.text(

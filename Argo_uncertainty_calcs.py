@@ -1,8 +1,35 @@
 # Modified copy of Argo_gridding_ANHA4.py
-# Reviewer suggested estimating uncertainty in Argo calculations
-# New approach is to find each Argo float during winter in the
-# Lab Sea and then extract the associated model value for
-# comparison
+# Reviewer suggested estimating uncertainty in Argo calculations.
+
+# For the 221 m Argo mean MLD in the interior Lab Sea, the new
+# approach is to find each Argo float during winter in the
+# Lab Sea and then save that specific float to a dataset. The stddev
+# can then be calculated (note the mean is the same as before).
+#  => This is the function "calc_Argo_uncertainty_LabSea"
+
+# For comparison I'll also do the same calculations applied to the
+# model, i.e., find each model value that corresponds to a float and
+# save that to a new nc; then the same stddev calcs can be applied. I
+# don't need this for the paper, though.
+#  => This is the function "compare_to_ANHA4"
+
+# The stddev (and mean) calculations are done with the another function.
+#  => "simple_MLD_mean_std_dev"
+
+# Regarding the supplemental figure, it would be good to know the error
+# between the model and Argo, but comparing individual floats to model
+# points is fraught with difficulties and not physically appropriate
+# anyway. Instead, we will follow this algorithm:
+#  1) Identify all Argo floats in the region of interest, and save
+#     their MLD, grid location, and time (as before, multiple float
+#     values with a 5-day window are meaned---this is already done
+#     in "Argo_gridd_ANHA4.py")
+#  2) Identify corresponding model values in space and time
+#  4) Take the 10-year mean of the Argo data and calculate the error
+#     and mean between the model points and the Argo mean
+#  => This is the function "calculate_Argo_model_differences_NorthAtlantic"
+#  5) Map it (this is done in the script "figure_MLDs_supplemental.py")
+
 # Rowan Brown, Weddell Sea, Mar 2026
 
 import xarray as xr
@@ -13,7 +40,7 @@ from datetime import timedelta as td
 from cftime import DatetimeNoLeap
 
 
-def calc_Argo_uncertainty():
+def calc_Argo_uncertainty_LabSea():
     """Calculates the uncertainty relating to Argo-based mean MLDs.
     Works a bit differently than our previous treatment of Argo.
     Compared to gridding them (as we have already done)
@@ -51,7 +78,7 @@ def calc_Argo_uncertainty():
 
     # In the end we want a 1D dataset with coord iNPROF and vars
     mld = []
-    gridy = [] 
+    gridy = []
     nav_lat = []
     gridx = []
     nav_lon = []
@@ -65,7 +92,7 @@ def calc_Argo_uncertainty():
         # Load the lat-lon coordinate for the Argo data point
         lat = ds.profilelat.isel(iNPROF=i).to_numpy()
         lon = ds.profilelon.isel(iNPROF=i).to_numpy()
-        
+
         # Finding the "distance" between the the Argo point and each grid cell
         abslat = np.abs(grid_lats - lat)
         abslon = np.abs(grid_lons - lon)
@@ -111,7 +138,8 @@ def calc_Argo_uncertainty():
         attrs=dict(
             Timestamp = "March 2026",
             file_name = "Argo_mld_LabSea.nc",
-            description = "Density algorithm MLD of all floats during DJFMA 2008-2017 inclusive in the interior Lab Sea",
+            description = ("Density algorithm MLD of all floats during DJFMA" +
+                           " 2008-2017 inclusive in the interior Lab Sea"),
             source = "https://mixedlayer.ucsd.edu",
         ),
     )
@@ -242,55 +270,55 @@ def simple_MLD_mean_std_dev():
         print(run+" mean and std dev: "+str(m)+', '+str(sd))
 
 
-def compare_profiles_MLD_mean_std_dev():
-    """Compare the mean and std dev of the difference between
-    individual Argo data and the closest model data."""
+def calculate_Argo_model_differences_NorthAtlantic():
 
-    print("Calculating profile-to-profile differences...")
+    ds = xr.open_dataset("Argo_mld_ANHA4_NorthAtlantic.nc")
+    ds = ds.set_coords(['nav_lat', 'nav_lon'])
+    da = ds['da_mld']
+    da = da.where(da > 0)
+    da = da.rename({'date': 'time'}).convert_calendar("noleap", use_cftime=True)
+    da_1d = da.stack(da_mld=("y", "x", "time")).dropna("da_mld")
+    da_1d = da_1d.reset_index('da_mld')
 
-    # Main
     runs = ['EPM151', 'EPM152', 'EPM155', 'EPM156', 'EPM157', 'EPM158']
     for run in runs:
-        ds = xr.open_dataset("Argo_mld_LabSea_"+run+".nc")
-        ds['diff'] = ds[run] - ds['mld']
-        m = ds['diff'].mean().to_numpy()
-        sd = ds['diff'].std().to_numpy()
-        print(run+" mean and std dev: "+str(m)+', '+str(sd))
 
+        # Text file of paths to non-empty model output
+        gridT_txt_nibi = '../filepaths/'+run+'_gridT_filepaths_jul2025.txt'
+        gridT_txt = '../filepaths/'+run+'_gridT_filepaths.txt'
 
-def compare_Argo_to_clim_MLD_mean_std_dev():
-    """Finally compare the individual Argo data to the model
-    climatological value."""
+        # Open the text files and get lists of the .nc output filepaths
+        try:
+            with open(gridT_txt_nibi) as f:
+                lines = f.readlines()
+        except FileNotFoundError:
+            with open(gridT_txt) as f:
+                lines = f.readlines()
+        filepaths_gridT = [line.strip() for line in lines]
 
-    print("Comparing Argo profiles to climatology...""")
+        # Now open the model data
+        print("Opening "+run+" dataset")
+        preprocess_gridT = lambda ds: ds[['somxlts']]
+        ds = xr.open_mfdataset(filepaths_gridT, preprocess=preprocess_gridT)
 
-    # Main claculations
-    def calc(run):
-        ds = xr.open_dataset("Argo_mld_LabSea_"+run+".nc")
-        ds['Argo_month'] = ds['time_counter'].dt.month
-        ds['ANHA4_mld'] = ds['mld_clim'].sel(
-            month=ds['Argo_month'],
-            y_grid_T=ds['gridy'].astype(int),
-            x_grid_T=ds['gridx'].astype(int),
-        )
-        ds['diff'] = abs(ds[run] - ds['ANHA4_mld'])
-        m = ds['diff'].mean().to_numpy()
-        sd = ds['diff'].std().to_numpy()
-        ds['RMSE_sq'] = (ds['mld']-ds['ANHA4_mld'])**2
-        rmse = (ds['RMSE_sq'].sum().to_numpy()/
-                len(ds['RMSE_sq'].to_numpy()))**0.5
-        print(run+" mean and std dev: "+str(m)+', '+str(sd))
-        print(run+" RMSE: "+str(rmse))
+        mld_1d = ds['somxlts'].isel(
+            y_grid_T=da_1d['y'].values,
+            x_grid_T=da_1d['x'].values,
+        ).sel(time_counter=da_1d['time'].values, method='nearest')
 
-    # Running
-    runs = ['EPM151', 'EPM152', 'EPM155', 'EPM156', 'EPM157', 'EPM158']
-    for run in runs:
-        calc(run)
+        mld_1d.to_netcdf("Argo_mld_NorthAtlantic_"+run+".nc")
+        print("Modelled MLDs at Argo points saved for "+run)
+
+    da_1d.to_netcdf("Argo_mld_NorthAtlantic.nc")
+    print("MLDs at Argo points saved")
 
 
 if __name__ == "__main__":
-    #calc_Argo_uncertainty()
+
+    # Calculating the stddev in the Lab Sea Argo data
+    #calc_Argo_uncertainty_LabSea()
     #compare_to_ANHA4(run)
-    simple_MLD_mean_std_dev()
-    compare_profiles_MLD_mean_std_dev()
-    compare_Argo_to_clim_MLD_mean_std_dev()
+    #simple_MLD_mean_std_dev()
+
+    # Calculating the model-Argo error in the North Atlantic
+    calculate_Argo_model_differences_NorthAtlantic()

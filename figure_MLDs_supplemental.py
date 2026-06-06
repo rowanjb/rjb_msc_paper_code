@@ -132,6 +132,8 @@ def plot_MLDs_supplemental_figure():
     #   before 2008: 60.56136529125293, i.e., pretty dang close :)
     fp = 'MLD_yearly_maps_NorthAtlantic_domain_Argo.nc'
     ds_argo = xr.open_dataset(fp).rename({'y': 'y_grid_T', 'x': 'x_grid_T'})
+    print(ds_argo)
+    quit()
     argo = ds_argo['yearly_mean'].mean(dim='year')
     std_dev = ds_argo['std_dev']
 

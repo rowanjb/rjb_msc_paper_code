@@ -387,7 +387,7 @@ def calculate_fluxes(run):
 
     # Need densitie; uses some minor simplifications
     dst['pressure'] = gsw.p_from_z((-1)*dst['deptht'],dst['nav_lat_grid_T']) # dbar, note deptht needs to be negative
-    dst['SA'] = gsw.SA_from_SP(dst['vosaline'],dst['pressure'],dst['nav_lon_grid_T'],dst['nav_lat_grid_T']) # unitless, i.e., g/kg 
+    dst['SA'] = gsw.SA_from_SP(dst['vosaline'],dst['pressure'],dst['nav_lon_grid_T'],dst['nav_lat_grid_T']) # unitless, i.e., g/kg
     dst['CT'] = gsw.CT_from_pt(dst['SA'],dst['votemper']) # C
     dst['cp'] = gsw.cp_t_exact(dst['SA'],gsw.t_from_CT(dst['SA'],dst['CT'],dst['pressure']),dst['pressure']) # J/kg C
     dst['pot_dens'] = gsw.rho(dst['SA'],dst['CT'],0) # kg/m**3, equal to potential density if pressure = 0
@@ -396,7 +396,7 @@ def calculate_fluxes(run):
     # Volume flux 
     dst['vol_flux'] = dst['horiz_dims']*dst['vel*e3'] # m * m**2/s = m**3/s
     
-    # Heat flux, calculated with refT=-2, gsw.cp_t_exact, and gsw.pot_dens, which is same as my heat content calcolours
+    # Heat flux, calculated with refT=-2, gsw.cp_t_exact, and gsw.pot_dens, which is same as my heat content calcs
     refT = -2
     dst['heat_flux'] = dst['vol_flux']*dst['pot_dens']*dst['cp']*(dst['votemper']-refT) # m**3/s * kg/m**3 * J/kgC * C = J/s
 

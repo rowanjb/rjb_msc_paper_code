@@ -99,7 +99,7 @@ def plot_stratification_figure():
         r'Mean stratification',
         fontdict={'fontsize': 12}
     )
-    ax1.set_ylim(100, 2750)
+    ax1.set_ylim(100, 2450)
     ax1.set_xlim(datetime(2007, 7, 2), datetime(2018, 7, 2))
     ax1.text(
         0.05,
@@ -144,7 +144,7 @@ def plot_stratification_figure():
         r'10-yr mean',
         fontdict={'fontsize': 12}
     )
-    ax2.set_ylim(100, 2750)
+    ax2.set_ylim(100, 2450)
     labls = [
         means['EPM157'],
         means['EPM158'],

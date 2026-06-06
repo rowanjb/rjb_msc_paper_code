@@ -23,7 +23,7 @@ def plot_stratification_figure():
     )
 
     # For controlling linestyle
-    runs = ['EPM157', 'EPM158', 'EPM151', 'EPM152', 'EPM155', 'EPM547']
+    runs = ['EPM157', 'EPM158', 'EPM151', 'EPM152', 'EPM155', 'EPM156']
     colours = plt.cm.viridis([0, 0, 0.5, 0.5, 0.8, 0.8])
     linestyles = ['-', '--', '-', '--', '-', '--']
     hatches = ["", "///", "", "///", "", "///"]
@@ -99,7 +99,7 @@ def plot_stratification_figure():
         r'Mean stratification',
         fontdict={'fontsize': 12}
     )
-    ax1.set_ylim(100, 2350)
+    ax1.set_ylim(100, 2750)
     ax1.set_xlim(datetime(2007, 7, 2), datetime(2018, 7, 2))
     ax1.text(
         0.05,
@@ -144,19 +144,19 @@ def plot_stratification_figure():
         r'10-yr mean',
         fontdict={'fontsize': 12}
     )
-    ax2.set_ylim(100, 2350)
+    ax2.set_ylim(100, 2750)
     labls = [
         means['EPM157'],
         means['EPM158'],
         means['EPM151'],
         means['EPM152'],
         means['EPM155'],
-        means['EPM547']
+        means['EPM156']
     ]
     kwargs = {'rotation': 90, 'fontsize': 9}
     ax2.bar_label(
         ax2.containers[0],
-        labels=[str(i)[:6] for i in labls],
+        labels=[str(i)[:6] + ' PJ' for i in labls],
         padding=3,
         **kwargs
     )
@@ -209,7 +209,7 @@ def plot_stratification_figure():
     ax3.set_xlabel(None)
     ax3.yaxis.set_tick_params(labelsize=9)
     ax3.xaxis.set_tick_params(labelsize=9)
-    ax3.set_ylim(0, 650)
+    ax3.set_ylim(0, 750)
     ax3.set_xlim(2007.5, 2018.5)
     ax3.text(
         0.05,
@@ -246,7 +246,7 @@ def plot_stratification_figure():
         rotation=0,
         fontsize=9
     )
-    ax4.set_ylim(0, 650)
+    ax4.set_ylim(0, 750)
     ax4.yaxis.set_tick_params(labelsize=9)
     labls = [
         means['EPM157'],
@@ -254,12 +254,12 @@ def plot_stratification_figure():
         means['EPM151'],
         means['EPM152'],
         means['EPM155'],
-        means['EPM547']
+        means['EPM156']
     ]
     kwargs = {'rotation': 90, 'fontsize': 9}  # For annotating mean values
     ax4.bar_label(
         ax4.containers[0],
-        labels=[str(i)[:6] for i in labls],
+        labels=[str(i)[:6] + " Tm$^3$" for i in labls],
         padding=3,
         **kwargs
     )

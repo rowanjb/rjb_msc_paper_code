@@ -48,7 +48,7 @@ def create_temporary_files():
         # --- these aren't that instructive because they're too busy ==#
         ds['vol_flux_section_mean'] = ds['vol_flux'].sel(
             time_counter=slice(start_date, end_date)).mean(['time_counter'])
-        ds['enthalpy_flux_section_mean'] = ds['enthalpy_flux'].sel(
+        ds['heat_flux_section_mean'] = ds['heat_flux'].sel(
             time_counter=slice(start_date, end_date)).mean(['time_counter'])
         ds['salt_flux_section_mean'] = ds['salt_flux'].sel(
             time_counter=slice(start_date, end_date)).mean(['time_counter'])
@@ -59,7 +59,7 @@ def create_temporary_files():
         ds['vol_flux_irminger'] = ds['vol_flux'].sel(
             ids=slice(irminger_start_id, irminger_end_id)
             ).sum(['ids', 'deptht'])
-        ds['enthalpy_flux_irminger'] = ds['enthalpy_flux'].sel(
+        ds['heat_flux_irminger'] = ds['heat_flux'].sel(
             ids=slice(irminger_start_id, irminger_end_id)
             ).sum(['ids', 'deptht'])
         ds['salt_flux_irminger'] = ds['salt_flux'].sel(
@@ -73,7 +73,7 @@ def create_temporary_files():
         ds['vol_flux_irminger_srfc'] = ds['vol_flux'].sel(
             ids=slice(irminger_start_id, irminger_end_id)
             ).where(ds['deptht'] < d).sum(['ids', 'deptht'])
-        ds['enthalpy_flux_irminger_srfc'] = ds['enthalpy_flux'].sel(
+        ds['heat_flux_irminger_srfc'] = ds['heat_flux'].sel(
             ids=slice(irminger_start_id, irminger_end_id)
             ).where(ds['deptht'] < d).sum(['ids', 'deptht'])
         ds['salt_flux_irminger_srfc'] = ds['salt_flux'].sel(
@@ -87,7 +87,7 @@ def create_temporary_files():
         ds['vol_flux_irminger_depth'] = ds['vol_flux'].sel(
             ids=slice(irminger_start_id, irminger_end_id)
             ).where(ds['deptht'] > d).sum(['ids', 'deptht'])
-        ds['enthalpy_flux_irminger_depth'] = ds['enthalpy_flux'].sel(
+        ds['heat_flux_irminger_depth'] = ds['heat_flux'].sel(
             ids=slice(irminger_start_id, irminger_end_id)
             ).where(ds['deptht'] > d).sum(['ids', 'deptht'])
         ds['salt_flux_irminger_depth'] = ds['salt_flux'].sel(
@@ -103,7 +103,7 @@ def create_temporary_files():
         # LC total
         ds['vol_flux_lc'] = ds['vol_flux'].sel(
             ids=slice(lc_start_id, lc_end_id)).sum(['ids', 'deptht'])
-        ds['enthalpy_flux_lc'] = ds['enthalpy_flux'].sel(
+        ds['heat_flux_lc'] = ds['heat_flux'].sel(
             ids=slice(lc_start_id, lc_end_id)).sum(['ids', 'deptht'])
         ds['salt_flux_lc'] = ds['salt_flux'].sel(
             ids=slice(lc_start_id, lc_end_id)).sum(['ids', 'deptht'])
@@ -114,7 +114,7 @@ def create_temporary_files():
         ds['vol_flux_lc_srfc'] = ds['vol_flux'].sel(
             ids=slice(lc_start_id, lc_end_id)
             ).where(ds['deptht'] < d).sum(['ids', 'deptht'])
-        ds['enthalpy_flux_lc_srfc'] = ds['enthalpy_flux'].sel(
+        ds['heat_flux_lc_srfc'] = ds['heat_flux'].sel(
             ids=slice(lc_start_id, lc_end_id)
             ).where(ds['deptht'] < d).sum(['ids', 'deptht'])
         ds['salt_flux_lc_srfc'] = ds['salt_flux'].sel(
@@ -128,7 +128,7 @@ def create_temporary_files():
         ds['vol_flux_lc_depth'] = ds['vol_flux'].sel(
             ids=slice(lc_start_id, lc_end_id)
             ).where(ds['deptht'] > d).sum(['ids', 'deptht'])
-        ds['enthalpy_flux_lc_depth'] = ds['enthalpy_flux'].sel(
+        ds['heat_flux_lc_depth'] = ds['heat_flux'].sel(
             ids=slice(lc_start_id, lc_end_id)
             ).where(ds['deptht'] > d).sum(['ids', 'deptht'])
         ds['salt_flux_lc_depth'] = ds['salt_flux'].sel(
@@ -143,14 +143,14 @@ def create_temporary_files():
 
         # full total
         ds['vol_flux_full'] = ds['vol_flux'].sum(['ids', 'deptht'])
-        ds['enthalpy_flux_full'] = ds['enthalpy_flux'].sum(['ids', 'deptht'])
+        ds['heat_flux_full'] = ds['heat_flux'].sum(['ids', 'deptht'])
         ds['salt_flux_full'] = ds['salt_flux'].sum(['ids', 'deptht'])
         ds['fw_flux_full'] = ds['fw_flux'].sum(['ids', 'deptht'])
 
         # full surface
         ds['vol_flux_full_srfc'] = ds['vol_flux'].where(
             ds['deptht'] < d).sum(['ids', 'deptht'])
-        ds['enthalpy_flux_full_srfc'] = ds['enthalpy_flux'].where(
+        ds['heat_flux_full_srfc'] = ds['heat_flux'].where(
             ds['deptht'] < d).sum(['ids', 'deptht'])
         ds['salt_flux_full_srfc'] = ds['salt_flux'].where(
             ds['deptht'] < d).sum(['ids', 'deptht'])
@@ -160,7 +160,7 @@ def create_temporary_files():
         # full depth
         ds['vol_flux_full_depth'] = ds['vol_flux'].where(
             ds['deptht'] > d).sum(['ids', 'deptht'])
-        ds['enthalpy_flux_full_depth'] = ds['enthalpy_flux'].where(
+        ds['heat_flux_full_depth'] = ds['heat_flux'].where(
             ds['deptht'] > d).sum(['ids', 'deptht'])
         ds['salt_flux_full_depth'] = ds['salt_flux'].where(
             ds['deptht'] > d).sum(['ids', 'deptht'])
@@ -173,8 +173,8 @@ def create_temporary_files():
         # other total
         ds['vol_flux_other'] = (
             ds['vol_flux_full']-ds['vol_flux_irminger']-ds['vol_flux_lc'])
-        ds['enthalpy_flux_other'] = (
-            ds['enthalpy_flux_full']-ds['enthalpy_flux_irminger']-ds['enthalpy_flux_lc'])
+        ds['heat_flux_other'] = (
+            ds['heat_flux_full']-ds['heat_flux_irminger']-ds['heat_flux_lc'])
         ds['salt_flux_other'] = (
             ds['salt_flux_full']-ds['salt_flux_irminger']-ds['salt_flux_lc'])
         ds['fw_flux_other'] = (
@@ -184,9 +184,9 @@ def create_temporary_files():
         ds['vol_flux_other_srfc'] = (
             ds['vol_flux_full_srfc']-ds['vol_flux_irminger_srfc']
             - ds['vol_flux_lc_srfc'])
-        ds['enthalpy_flux_other_srfc'] = (
-            ds['enthalpy_flux_full_srfc']-ds['enthalpy_flux_irminger_srfc']
-            - ds['enthalpy_flux_lc_srfc'])
+        ds['heat_flux_other_srfc'] = (
+            ds['heat_flux_full_srfc']-ds['heat_flux_irminger_srfc']
+            - ds['heat_flux_lc_srfc'])
         ds['salt_flux_other_srfc'] = (
             ds['salt_flux_full_srfc']-ds['salt_flux_irminger_srfc']
             - ds['salt_flux_lc_srfc'])
@@ -198,9 +198,9 @@ def create_temporary_files():
         ds['vol_flux_other_depth'] = (
             ds['vol_flux_full_depth']-ds['vol_flux_irminger_depth']
             - ds['vol_flux_lc_depth'])
-        ds['enthalpy_flux_other_depth'] = (
-            ds['enthalpy_flux_full_depth']-ds['enthalpy_flux_irminger_depth']
-            - ds['enthalpy_flux_lc_depth'])
+        ds['heat_flux_other_depth'] = (
+            ds['heat_flux_full_depth']-ds['heat_flux_irminger_depth']
+            - ds['heat_flux_lc_depth'])
         ds['salt_flux_other_depth'] = (
             ds['salt_flux_full_depth']-ds['salt_flux_irminger_depth']
             - ds['salt_flux_lc_depth'])
@@ -208,7 +208,7 @@ def create_temporary_files():
             ds['fw_flux_full_depth']-ds['fw_flux_irminger_depth']
             - ds['fw_flux_lc_depth'])
 
-        ds = ds.drop_vars(['vol_flux', 'enthalpy_flux', 'salt_flux', 'fw_flux'])
+        ds = ds.drop_vars(['vol_flux', 'heat_flux', 'salt_flux', 'fw_flux'])
         ds.to_netcdf('ls3k_fluxes_plotting_'+run+'.nc')
         print("Completed plotting preprocessing for "+run)
 
@@ -498,7 +498,7 @@ def ls3k_plot_barh_diffs():
     a2b.set_xlim(-175, 175)
 
     # ax3 : Heat flux (same logic as before)
-    heat_stacks = populate_stacks('enthalpy', runs)
+    heat_stacks = populate_stacks('heat', runs)
     bottom_pos_neg = np.zeros((2, 4))
     bottom = np.zeros(4)
     for region, fluxes in heat_stacks.items():  # For each region...
@@ -537,7 +537,7 @@ def ls3k_plot_barh_diffs():
             zorder=100
         )
     ax3.set_title(
-        "Differences in 10-yr mean enthalpy flux ($TW$)",
+        "Differences in 10-yr mean heat flux ($TW$)",
         pad=-10,
         fontdict={'fontsize': 12}
     )

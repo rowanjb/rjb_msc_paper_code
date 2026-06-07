@@ -318,7 +318,7 @@ if __name__ == "__main__":
     # Calculating the stddev in the Lab Sea Argo data
     #calc_Argo_uncertainty_LabSea()
     #compare_to_ANHA4(run)
-    #simple_MLD_mean_std_dev()
+    simple_MLD_mean_std_dev()
 
     # Calculating the model-Argo error in the North Atlantic
-    calculate_Argo_model_differences_NorthAtlantic()
+    #calculate_Argo_model_differences_NorthAtlantic()

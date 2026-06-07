@@ -302,9 +302,9 @@ def calculate_Argo_model_differences_NorthAtlantic():
         ds = xr.open_mfdataset(filepaths_gridT, preprocess=preprocess_gridT)
 
         mld_1d = ds['somxlts'].isel(
-            y_grid_T=da_1d['y'].values,
-            x_grid_T=da_1d['x'].values,
-        ).sel(time_counter=da_1d['time'].values, method='nearest')
+            y_grid_T=da_1d['y'],
+            x_grid_T=da_1d['x'],
+        ).sel(time_counter=da_1d['time'], method='nearest')
 
         mld_1d.to_netcdf("Argo_mld_NorthAtlantic_"+run+".nc")
         print("Modelled MLDs at Argo points saved for "+run)

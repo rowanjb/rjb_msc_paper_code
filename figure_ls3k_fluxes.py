@@ -42,7 +42,7 @@ def create_temporary_files():
     for run in ['EPM151', 'EPM152', 'EPM155', 'EPM156', 'EPM157', 'EPM158']:
 
         # Open
-        ds = xr.open_dataset('ls3k_fluxes_revision_'+run+'.nc')
+        ds = xr.open_dataset('ls3k_fluxes_tref0_'+run+'.nc')
 
         # == For making section plots
         # --- these aren't that instructive because they're too busy ==#
@@ -537,7 +537,7 @@ def ls3k_plot_barh_diffs():
             zorder=100
         )
     ax3.set_title(
-        "Differences in 10-yr mean heat flux ($TW$)",
+        "Differences in 10-yr mean heat flux with $T_{ref}=0$ ℃ ($TW$)",
         pad=-10,
         fontdict={'fontsize': 12}
     )
@@ -750,7 +750,7 @@ def ls3k_plot_barh_diffs():
     )
 
     # This can be an svg because there are no rasterisations
-    plt.savefig('figure_ls3k_fluxes_barh.svg', format='svg')
+    plt.savefig('figure_ls3k_fluxes_barh_tref0.svg', format='svg')
 
 
 def ls3k_plot_volume_fluxes():
@@ -1061,7 +1061,7 @@ def ls3k_plot_volume_fluxes():
         top=0.95,
         bottom=0.1)
 
-    name = 'figure_ls3k_fluxes_time_series.svg'
+    name = 'figure_ls3k_fluxes_time_series_tref0.svg'
     plt.savefig(name, dpi=600)
     print("Saved: "+name)
 

@@ -390,7 +390,7 @@ def calculate_fluxes(run):
     dst['SA'] = gsw.SA_from_SP(dst['vosaline'],dst['pressure'],dst['nav_lon_grid_T'],dst['nav_lat_grid_T']) # unitless, i.e., g/kg
     dst['CT'] = gsw.CT_from_pt(dst['SA'],dst['votemper']) # C
     dst['enthalpy'] = gsw.energy.enthalpy(dst['SA'], dst['CT'], dst['pressure'])
-    #dst['cp'] = gsw.cp_t_exact(dst['SA'],gsw.t_from_CT(dst['SA'],dst['CT'],dst['pressure']),dst['pressure']) # J/kg C
+    dst['cp'] = gsw.cp_t_exact(dst['SA'],gsw.t_from_CT(dst['SA'],dst['CT'],dst['pressure']),dst['pressure']) # J/kg C
     dst['pot_dens'] = gsw.rho(dst['SA'],dst['CT'],0) # kg/m**3, equal to potential density if pressure = 0
     dst['insit_dens'] = gsw.rho(dst['SA'],dst['CT'],dst['pressure']) # kg/m**3
 
@@ -398,8 +398,9 @@ def calculate_fluxes(run):
     dst['vol_flux'] = dst['horiz_dims']*dst['vel*e3'] # m * m**2/s = m**3/s
     
     # Heat flux, calculated with refT=-2, gsw.cp_t_exact, and gsw.pot_dens, which is same as my heat content calcolours
-    # refT = -2
-    dst['enthalpy_flux'] = dst['vol_flux']*dst['insit_dens']*dst['enthalpy'] # m**3/s * kg/m**3 * J/kgC * C = J/s
+    refT = 0
+    #dst['enthalpy_flux'] = dst['vol_flux']*dst['insit_dens']*dst['enthalpy'] # m**3/s * kg/m**3 * J/kgC * C = J/s
+    dst['heat_flux'] = dst['vol_flux']*dst['pot_dens']*dst['cp']*(dst['votemper']-refT)
 
     # Salt content
     dst['salt_flux'] = dst['vol_flux']*dst['vosaline']*dst['insit_dens'] # m**3/s * g/kg * kg/m**3
@@ -409,16 +410,16 @@ def calculate_fluxes(run):
     dst['fw_flux'] = dst['vol_flux']*(34.8-dst['SA'])/34.8 # m**3/s
 
     # Saving
-    dst = dst[['vol_flux','enthalpy_flux','salt_flux','fw_flux','pot_dens']]
+    dst = dst[['vol_flux','heat_flux','salt_flux','fw_flux','pot_dens']]
     dst = dst.assign_attrs(description="Fluxes into the interior Lab Sea", 
                            title="Fluxes into the interior Lab Sea",
                            vol_flux_units="m**3/s",
-                           enthalpy_flux_units="J/s",
+                           heat_flux_units="J/s",
                            salt_flux_units="g/s",
                            fw_flux_units="m**3/s",
                            pot_dens_units="kg/m**3")
     print("LS3k fluxes calc'd for: "+run)
-    dst.to_netcdf('ls3k_fluxes_revision_'+run+'.nc')
+    dst.to_netcdf('ls3k_fluxes_tref0_'+run+'.nc')
     dst.close()
     dsu.close()
     dsv.close()

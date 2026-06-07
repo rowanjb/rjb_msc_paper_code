@@ -110,8 +110,8 @@ def calc_Argo_uncertainty_LabSea():
 
         # Save the MLD if it fits in our time and region
         m = dtdates[i].month
-        y = dtdates[i].year
-        if (y in range(2008, 2018)) and (m in [12, 1, 2, 3, 4]):
+        #y = dtdates[i].year
+        if (dtdates[i]>dt(2007, 12, 1)) and (dtdates[i]<dt(2017, 5, 1)) and (m in [12, 1, 2, 3, 4]):
             if mesh['mask'].sel(x=idx, y=idy).to_numpy() == 1:
                 mld.append(ds['da_mld'].sel(iNPROF=i).data)
                 nav_lat.append(mesh['nav_lat'].sel(x=idx, y=idy).data)
@@ -139,7 +139,7 @@ def calc_Argo_uncertainty_LabSea():
             Timestamp = "March 2026",
             file_name = "Argo_mld_LabSea.nc",
             description = ("Density algorithm MLD of all floats during DJFMA" +
-                           " 2008-2017 inclusive in the interior Lab Sea"),
+                           " Dec 2007--Apr 2017 inclusive in the interior Lab Sea"),
             source = "https://mixedlayer.ucsd.edu",
         ),
     )
@@ -316,7 +316,7 @@ def calculate_Argo_model_differences_NorthAtlantic():
 if __name__ == "__main__":
 
     # Calculating the stddev in the Lab Sea Argo data
-    #calc_Argo_uncertainty_LabSea()
+    calc_Argo_uncertainty_LabSea()
     #compare_to_ANHA4(run)
     simple_MLD_mean_std_dev()
 

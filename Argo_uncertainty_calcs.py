@@ -1,37 +1,6 @@
 # Modified copy of Argo_gridding_ANHA4.py
 # Reviewer suggested estimating uncertainty in Argo calculations.
 
-# For the 221 m Argo mean MLD in the interior Lab Sea, the new
-# approach is to find each Argo float during winter in the
-# Lab Sea and then save that specific float to a dataset. The stddev
-# can then be calculated (note the mean is the same as before).
-#  => This is the function "calc_Argo_uncertainty_LabSea"
-
-# For comparison I'll also do the same calculations applied to the
-# model, i.e., find each model value that corresponds to a float and
-# save that to a new nc; then the same stddev calcs can be applied. I
-# don't need this for the paper, though.
-#  => This is the function "compare_to_ANHA4"
-
-# The stddev (and mean) calculations are done with the another function.
-#  => "simple_MLD_mean_std_dev"
-
-# Regarding the supplemental figure, it would be good to know the error
-# between the model and Argo, but comparing individual floats to model
-# points is fraught with difficulties and not physically appropriate
-# anyway. Instead, we will follow this algorithm:
-#  1) Identify all Argo floats in the region of interest, and save
-#     their MLD, grid location, and time (as before, multiple float
-#     values with a 5-day window are meaned---this is already done
-#     in "Argo_gridd_ANHA4.py")
-#  2) Identify corresponding model values in space and time
-#  4) Take the 10-year mean of the Argo data and calculate the error
-#     and mean between the model points and the Argo mean
-#  => This is the function "calculate_Argo_model_differences_NorthAtlantic"
-#  5) Map it (this is done in the script "figure_MLDs_supplemental.py")
-
-# Rowan Brown, Weddell Sea, Mar 2026
-
 import xarray as xr
 import numpy as np
 import pandas as pd

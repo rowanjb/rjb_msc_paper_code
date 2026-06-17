@@ -87,6 +87,7 @@ def plot_stratification_figure():
     )
     ax1.set_xticklabels(labels=years, ha='center', rotation=0)
     ax1.set_xlabel(None)
+    ax1.tick_params("x", rotation=15)
     ax1.xaxis.grid(True, linewidth=1, alpha=0.75)
     means = df.mean(axis=0)
     ax1.xaxis.set_tick_params(labelsize=9)
@@ -99,7 +100,7 @@ def plot_stratification_figure():
         r'Mean stratification',
         fontdict={'fontsize': 12}
     )
-    ax1.set_ylim(100, 2450)
+    ax1.set_ylim(100, 2350)
     ax1.set_xlim(datetime(2007, 7, 2), datetime(2018, 7, 2))
     ax1.text(
         0.05,
@@ -140,11 +141,18 @@ def plot_stratification_figure():
         fontsize=9
     )
     ax2.yaxis.set_tick_params(labelsize=9)
+    ax2.set_ylabel(
+        'Convective\nresistance'+r'($PJ$)',
+        fontdict={'fontsize': 12}
+    )
+    ax2.tick_params(right=True, labelright=True, left=False, labelleft=False)
+    ax2.yaxis.set_label_position("right")
+    ax2.yaxis.grid(True, linewidth=1, zorder=-10, alpha=0.75)
     ax2.set_title(
         r'10-yr mean',
         fontdict={'fontsize': 12}
     )
-    ax2.set_ylim(100, 2450)
+    ax2.set_ylim(100, 2350)
     labls = [
         means['EPM157'],
         means['EPM158'],
@@ -156,7 +164,7 @@ def plot_stratification_figure():
     kwargs = {'rotation': 90, 'fontsize': 9}
     ax2.bar_label(
         ax2.containers[0],
-        labels=[str(i)[:6] + ' PJ' for i in labls],
+        labels=[str(i)[:6] for i in labls],
         padding=3,
         **kwargs
     )
@@ -175,7 +183,6 @@ def plot_stratification_figure():
             boxstyle='circle,pad=0.1'
         )
     )
-    ax2.yaxis.set_ticklabels([])
     ax2.yaxis.grid(True, linewidth=1, zorder=-10, alpha=0.75)
 
     # Opening the convective volume data
@@ -207,9 +214,10 @@ def plot_stratification_figure():
     )
     ax3.xaxis.grid(True, linewidth=1, alpha=0.75)
     ax3.set_xlabel(None)
+    ax3.tick_params("x", rotation=15)
     ax3.yaxis.set_tick_params(labelsize=9)
     ax3.xaxis.set_tick_params(labelsize=9)
-    ax3.set_ylim(0, 750)
+    ax3.set_ylim(0, 625)
     ax3.set_xlim(2007.5, 2018.5)
     ax3.text(
         0.05,
@@ -246,7 +254,7 @@ def plot_stratification_figure():
         rotation=0,
         fontsize=9
     )
-    ax4.set_ylim(0, 750)
+    ax4.set_ylim(0, 625)
     ax4.yaxis.set_tick_params(labelsize=9)
     labls = [
         means['EPM157'],
@@ -259,7 +267,7 @@ def plot_stratification_figure():
     kwargs = {'rotation': 90, 'fontsize': 9}  # For annotating mean values
     ax4.bar_label(
         ax4.containers[0],
-        labels=[str(i)[:6] + " Tm$^3$" for i in labls],
+        labels=[str(i)[:6] for i in labls],
         padding=3,
         **kwargs
     )
@@ -278,7 +286,13 @@ def plot_stratification_figure():
             boxstyle='circle,pad=0.1'
         )
     )
-    ax4.yaxis.set_ticklabels([])
+    ax4.yaxis.set_tick_params(labelsize=9)
+    ax4.set_ylabel(
+        'Winter mean\nconvective\nvolume'+r'($Tm3$)',
+        fontdict={'fontsize': 12}
+    )
+    ax4.tick_params(right=True, labelright=True, left=False, labelleft=False)
+    ax4.yaxis.set_label_position("right")
     ax4.yaxis.grid(True, linewidth=1, zorder=-10, alpha=0.75)
     for spine in ax4.spines.values():
         spine.set_zorder(120)
@@ -315,7 +329,7 @@ def plot_stratification_figure():
         bottom=0.22,
         top=0.94,
         left=0.14,
-        right=0.96
+        right=0.86
     )
 
     name = 'figure_ConvR_ConvV.svg'

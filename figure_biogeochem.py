@@ -80,6 +80,7 @@ def biogeochem_plot():
     )
     ax1.set_xticklabels(years, rotation=0, ha='center')
     ax1.set_xlabel(None)
+    ax1.tick_params("x", rotation=15)
     ax1.xaxis.grid(True, linewidth=1, alpha=0.75)
     ax1.yaxis.grid(True, linewidth=1, alpha=0.75)
     ax1.xaxis.set_tick_params(labelsize=9)
@@ -157,7 +158,13 @@ def biogeochem_plot():
         **kwargs)
     ax2.set_ylim(2.197, 2.22)
     ax2.yaxis.grid(True, linewidth=1, alpha=0.75, zorder=-10)
-    ax2.yaxis.set_ticklabels([])
+    ax2.yaxis.set_tick_params(labelsize=9)
+    ax2.set_ylabel(
+        'DIC\n'+r'($mol$ $m^{-3}$)',
+        fontdict={'fontsize': 12}
+    )
+    ax2.tick_params(right=True, labelright=True, left=False, labelleft=False)
+    ax2.yaxis.set_label_position("right")
     ax2.text(
         0.15,
         0.95,
@@ -186,6 +193,7 @@ def biogeochem_plot():
     )
     ax3.set_xticklabels(years, rotation=0, ha='center')
     ax3.set_xlabel(None)
+    ax3.tick_params("x", rotation=15)
     ax3.xaxis.grid(True, linewidth=1, alpha=0.75)
     ax3.yaxis.grid(True, linewidth=1, alpha=0.75)
     ax3.xaxis.set_tick_params(labelsize=9)
@@ -251,7 +259,14 @@ def biogeochem_plot():
         **kwargs)
     ax4.set_ylim(0.2725, 0.29)
     ax4.yaxis.grid(True, linewidth=1, alpha=0.75, zorder=-10)
-    ax4.yaxis.set_ticklabels([])
+    ax4.yaxis.set_tick_params(labelsize=9)
+    ax4.set_ylim(0.2725, 0.29)
+    ax4.set_ylabel(
+        'Oxygen\n'+r'($mol$ $m^{-3}$)',
+        fontdict={'fontsize': 12}
+    )
+    ax4.tick_params(right=True, labelright=True, left=False, labelleft=False)
+    ax4.yaxis.set_label_position("right")
     ax4.text(
         0.15,
         0.95,
@@ -302,7 +317,7 @@ def biogeochem_plot():
         bottom=0.22,
         top=0.90,
         left=0.14,
-        right=0.96
+        right=0.86
     )
 
     name = 'figure_biogeochem.svg'
